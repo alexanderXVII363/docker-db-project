@@ -1,2 +1,2 @@
-# docker-db-project
-Docker PostgreSQL setup with pgAdmin
+# Docker PostgreSQL Project
+This project runs PostgreSQL with pgAdmin using Docker.
