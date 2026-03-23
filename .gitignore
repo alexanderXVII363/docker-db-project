@@ -1,2 +1,48 @@
+# ========================
+# Visual Studio / VS Code
+# ========================
+
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.vscode/
+
+# ========================
+# Build / Output folders
+# ========================
+
+bin/
+obj/
+out/
+Debug/
+Release/
+
+# ========================
+# Environment files
+# ========================
+
 .env
 .env.local
+
+# ========================
+# Docker
+# ========================
+
+docker-compose.override.yml
+*.log
+
+# ========================
+# Node / npm (if used)
+# ========================
+
+node_modules/
+
+# ========================
+# OS files
+# ========================
+
+Thumbs.db
+.DS_Store
