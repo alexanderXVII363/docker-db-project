@@ -1,0 +1,65 @@
+CREATE TABLE EMPLOYEES
+(
+  Employee_ID INT NOT NULL,
+  Last_Name VARCHAR(20) NOT NULL,
+  First_Name VARCHAR(20) NOT NULL,
+  Hire_Date DATE NOT NULL,
+  PRIMARY KEY (Employee_ID)
+);
+
+CREATE TABLE VISITORS
+(
+  Visitor_ID INT NOT NULL,
+  First_Name VARCHAR(20) NOT NULL,
+  Last_Name VARCHAR(20) NOT NULL,
+  Phone VARCHAR(20) NOT NULL,
+  Date_Of_Birth DATE NOT NULL,
+  Email VARCHAR(50) NOT NULL,
+  Registration_Date DATE NOT NULL,
+  PRIMARY KEY (Visitor_ID)
+);
+
+CREATE TABLE TICKET_TYPES
+(
+  Ticket_ID INT NOT NULL,
+  Ticket_Name VARCHAR(100) NOT NULL,
+  Max_Capacity INT NOT NULL,
+  Base_Price NUMERIC(10,2) NOT NULL,
+  Category VARCHAR(50) NOT NULL,
+  PRIMARY KEY (Ticket_ID)
+);
+
+CREATE TABLE TRANSACTIONS
+(
+  Transaction_ID INT NOT NULL,
+  Transaction_Date DATE NOT NULL,
+  Total_Amount NUMERIC(10,2) NOT NULL,
+  Payment_Method VARCHAR(50) NOT NULL,
+  Employee_ID INT NOT NULL,
+  Visitor_ID INT NOT NULL,
+  PRIMARY KEY (Transaction_ID),
+  FOREIGN KEY (Employee_ID) REFERENCES EMPLOYEES(Employee_ID),
+  FOREIGN KEY (Visitor_ID) REFERENCES VISITORS(Visitor_ID)
+);
+
+CREATE TABLE MEMBERSHIPS
+(
+  Membership_ID INT NOT NULL,
+  Start_Date DATE NOT NULL,
+  Expiry_Date DATE NOT NULL,
+  Visitor_ID INT NOT NULL,
+  PRIMARY KEY (Membership_ID),
+  FOREIGN KEY (Visitor_ID) REFERENCES VISITORS(Visitor_ID)
+);
+
+CREATE TABLE TRANSACTION_ITEMS
+(
+  Item_ID INT NOT NULL,
+  Quantity INT NOT NULL,
+  Price_At_Sale NUMERIC(10,2) NOT NULL,
+  Transaction_ID INT NOT NULL,
+  Ticket_ID INT NOT NULL,
+  PRIMARY KEY (Item_ID, Transaction_ID),
+  FOREIGN KEY (Transaction_ID) REFERENCES TRANSACTIONS(Transaction_ID),
+  FOREIGN KEY (Ticket_ID) REFERENCES TICKET_TYPES(Ticket_ID)
+);
