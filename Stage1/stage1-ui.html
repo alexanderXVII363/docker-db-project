@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket & Visitor Management UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-8">
+
+    <div class="max-w-5xl mx-auto space-y-12">
+        
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-blue-600">Ticket & Visitor Management System</h1>
+            <p class="text-gray-500 mt-2">Stage 1: Frontend UI Mockups</p>
+        </div>
+
+        <!-- SCREEN 1: Visitor Registration Screen -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">1. Visitor Registration</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Visitor ID</label>
+                    <input type="text" placeholder="Auto-generated or enter ID" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+                    <input type="text" placeholder="John" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                    <input type="text" placeholder="Doe" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                    <input type="email" placeholder="john.doe@example.com" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Date of Birth</label>
+                    <input type="date" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="md:col-span-2 flex justify-end mt-2">
+                    <button type="button" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">Register Visitor</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SCREEN 2: Ticket Purchase Screen -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">2. Ticket Purchase</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Visitor ID</label>
+                    <input type="text" placeholder="Enter Visitor ID" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Ticket Type</label>
+                    <select class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option>General Admission</option>
+                        <option>VIP Pass</option>
+                        <option>Child / Senior</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
+                    <input type="number" min="1" value="1" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Transaction Date</label>
+                    <input type="date" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="md:col-span-2 flex justify-end mt-2">
+                    <button type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">Complete Purchase</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SCREEN 3: Transaction History Screen -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">3. Transaction History</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm">
+                            <th class="p-3 border-b">Transaction ID</th>
+                            <th class="p-3 border-b">Visitor ID</th>
+                            <th class="p-3 border-b">Ticket Type</th>
+                            <th class="p-3 border-b">Quantity</th>
+                            <th class="p-3 border-b">Transaction Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700">
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3">TXN-00192</td>
+                            <td class="p-3">VIS-8832</td>
+                            <td class="p-3">General Admission</td>
+                            <td class="p-3">2</td>
+                            <td class="p-3">2026-04-20</td>
+                        </tr>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3">TXN-00193</td>
+                            <td class="p-3">VIS-1045</td>
+                            <td class="p-3">VIP Pass</td>
+                            <td class="p-3">1</td>
+                            <td class="p-3">2026-04-20</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3">TXN-00194</td>
+                            <td class="p-3">VIS-9921</td>
+                            <td class="p-3">Child / Senior</td>
+                            <td class="p-3">3</td>
+                            <td class="p-3">2026-04-19</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: Membership Management Screen -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-12">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">4. Membership Management</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Visitor ID</label>
+                    <input type="text" placeholder="Enter Visitor ID" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Membership Type</label>
+                    <select class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option>Annual Standard</option>
+                        <option>Annual Premium</option>
+                        <option>Monthly Flex</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
+                    <input type="date" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Expiry Date</label>
+                    <input type="date" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="md:col-span-2 flex justify-end mt-2">
+                    <button type="button" class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition">Issue Membership</button>
+                </div>
+            </form>
+        </section>
+
+    </div>
+</body>
+</html>
