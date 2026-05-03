@@ -8,7 +8,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER_SECRET}
-      POSTGRES_PASSWORD: ${DB_PASSWORD_SECRET}
+      POSTGRES_PASSWORD: "admin"
       POSTGRES_DB: ${DB_NAME_SECRET}
     ports:
       - "5432:5432"
@@ -26,8 +26,8 @@ services:
     container_name: pgadminApp
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
     ports:
       - "8080:80"
     volumes:
