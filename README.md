@@ -251,3 +251,100 @@ Stores membership information for visitors.
 ---
 ## Link To AI Studio
 https://ai.studio/apps/e3a41d20-422a-404f-9456-cf01e27ff37b
+
+# Stage 2 – SQL Queries, Constraints & Indexes
+
+## Overview
+In this stage we worked on querying the database, improving data integrity using constraints, and optimizing performance using indexes. We also tested transaction control using commit and rollback operations.
+
+---
+
+## SELECT QUERIES
+
+We implemented 8 SELECT queries with different levels of complexity including JOINs, subqueries, aggregation, filtering, and grouping.
+
+### Query 1 – JOIN (Visitors & Transactions)
+This query returns visitors and the number of transactions they made using a JOIN and GROUP BY.
+
+### Query 2 – Subquery version
+This query returns the same result as Query 1 but uses a nested subquery instead of JOIN to compare approaches.
+
+### Query 3 – Date filtering
+This query retrieves transactions from the last 30 days using date comparison.
+
+### Query 4 – Extract function on date
+This query filters transactions by month using the EXTRACT function.
+
+### Query 5 – LIKE operator
+This query filters visitors whose last name starts with a specific letter.
+
+### Query 6 – ILIKE operator
+Same as Query 5 but case-insensitive.
+
+### Query 7 – Average calculation
+This query calculates the average number of transactions per visitor using a subquery.
+
+### Query 8 – HAVING clause
+This query shows visitors who made more than 5 transactions using GROUP BY and HAVING.
+
+---
+
+## UPDATE QUERIES
+
+We performed updates to demonstrate modification of existing records:
+
+- Updated a visitor email to test data modification.
+- Updated membership type for a specific record.
+- Increased ticket prices by a percentage.
+
+We verified results before and after each update using SELECT queries.
+
+---
+
+## DELETE QUERIES
+
+We tested deletion operations:
+
+- Deleted old transactions based on date condition.
+- Deleted a specific visitor record.
+- Removed invalid or NULL-related membership data.
+
+Each delete operation was verified before and after execution.
+
+---
+
+## TRANSACTION CONTROL (COMMIT & ROLLBACK)
+
+We demonstrated database transaction control:
+
+- A rollback operation was used to undo changes and restore previous state.
+- A commit operation was used to permanently save changes to the database.
+
+This shows understanding of safe database operations.
+
+---
+
+## CONSTRAINTS
+
+We added constraints using ALTER TABLE to improve data integrity:
+- Ensured valid data formats
+- Prevented invalid or duplicate values
+- Enforced relationships between tables
+
+We tested constraints by attempting invalid inserts, which correctly failed.
+
+---
+
+## INDEXES
+
+We created indexes on frequently used columns:
+- Visitor last name
+- Transaction date
+- Visitor ID
+
+We measured query performance before and after indexing and observed improved execution time for filtered queries.
+
+---
+
+## Conclusion
+This stage improved our understanding of SQL querying, database optimization, and safe data manipulation techniques.
