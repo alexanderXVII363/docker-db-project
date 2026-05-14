@@ -1,350 +1,278 @@
-# Docker Database Project – Stage 1
+
+---
+
+# Docker Database Project
+
+**Submitted by:** Alex & Moshe
+
+**System:** Ticket & Visitor Management System
+
+> This project demonstrates relational database design, normalization to 3NF, query optimization, and containerized deployment using Docker.
+
+---
+
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Technologies Used](#technologies-used)
+3. [Database Entities](#database-entities)
+4. [Data Dictionary](#data-dictionary)
+5. [Docker Setup](#docker-setup)
+6. [Data Generation](#data-generation)
+7. [Backup](#backup)
+8. [Project Structure](#project-structure)
+9. [Stage 1 Tag](#stage-1-tag)
+10. [Stage 2 – Queries, Constraints & Indexes](#stage-2-queries-constraints--indexes)
+
+---
 
 ## Project Overview
 
-This project implements the first stage of a database system using **PostgreSQL** and **pgAdmin** running inside **Docker containers**.
-The goal of Stage 1 is to design the database schema, create the required tables, and populate them with sample data.
+This project implements a robust database system using **PostgreSQL** and **pgAdmin** orchestrated via **Docker containers**.
 
-The system models a **ticket and visitor management system**, which tracks visitors, employees, ticket types, transactions, and memberships.
+The system models a **Ticket & Visitor Management System**, tracking visitors, employees, ticket types, transactions, and memberships. It is designed to handle the complex data requirements of a high-traffic venue, such as a theme park or zoo.
+
+The schema is strictly normalized to **3NF** to eliminate data redundancy and ensure referential integrity. The environment is managed through a containerized pgAdmin instance, providing a professional interface for database administration and performance monitoring.
+
+The UI mockup was designed using Google AI Studio:
+
+🔗 [View UI Mockup](https://ai.studio/apps/e3a41d20-422a-404f-9456-cf01e27ff37b)
 
 ---
 
 ## Technologies Used
 
-* Docker
-* PostgreSQL
-* pgAdmin
-* SQL
-* Mockaroo (for data generation)
-* Git / GitHub
+* **Docker & Docker Compose**: System containerization and service orchestration.
+* **PostgreSQL**: Relational database engine.
+* **pgAdmin 4**: Database administration and visualization.
+* **SQL**: For schema definition (DDL) and complex querying (DML).
+* **Mockaroo**: Bulk dataset generation.
+* **Git / GitHub**: Source control and documentation.
 
 ---
 
 ## Database Entities
 
-The database includes the following tables:
+The database architecture consists of six core tables:
 
-1. **employees** – stores employee information
-2. **visitors** – stores visitor details
-3. **ticket_types** – different types of tickets available
-4. **transactions** – records purchases made by visitors
-5. **transaction_items** – items included in each transaction
-6. **memberships** – visitor membership information
-
-These tables are connected through **primary keys and foreign keys** to maintain referential integrity.
+1. **employees**: Personnel management and transaction accountability.
+2. **visitors**: Comprehensive customer profiles and contact data.
+3. **ticket_types**: Product catalog including pricing and capacity constraints.
+4. **transactions**: High-level purchase headers.
+5. **transaction_items**: Granular line-item details for individual sales.
+6. **memberships**: Validity and subscription tracking for recurring visitors.
 
 ---
 
-## SQL Scripts
+## Data Dictionary
 
-The project includes several SQL scripts located in the `Stage1` folder.
+### 👨‍💼 employees
 
-| File             | Purpose                              |
-| ---------------- | ------------------------------------ |
-| createTables.sql | Creates all database tables          |
-| dropTables.sql   | Removes all tables from the database |
-| insertTables.sql | Inserts initial data                 |
-| selectAll.sql    | Queries to display table contents    |
+**Description:** Stores staff information for system operations.
 
----
+| Field Name | Type | Description |
+| --- | --- | --- |
+| employee_id | INT | Unique identifier (Primary Key) |
+| first_name | VARCHAR(20) | Employee's first name |
+| last_name | VARCHAR(20) | Employee's last name |
+| hire_date | DATE | Employment commencement date |
 
-## Data Generation
-
-Data for the tables was generated using multiple methods:
-
-1. **Manual SQL INSERT statements**
-2. **Mockaroo generated SQL files**
-3. **Manual data insertion through pgAdmin**
-
-Each main table contains approximately **500 records** for testing purposes.
+**Relationships:** Referenced by `transactions.employee_id`.
 
 ---
 
-## Backup
+### 👤 visitors
 
-A full database backup is included:
+**Description:** Stores registered customer data.
 
-`backup_2026.sql`
+| Field Name | Type | Description |
+| --- | --- | --- |
+| visitor_id | INT | Unique identifier (Primary Key) |
+| first_name | VARCHAR(20) | Visitor's first name |
+| last_name | VARCHAR(20) | Visitor's last name |
+| phone | VARCHAR(20) | Contact number (Unique Constraint) |
+| date_of_birth | DATE | Visitor's date of birth |
+| email | VARCHAR(50) | Primary contact email address |
+| registration_date | DATE | Profile creation date |
 
-This file allows the entire database to be restored if needed.
+**Relationships:** Referenced by `transactions.visitor_id` and `memberships.visitor_id`.
+
+---
+
+### 🎟️ ticket_types
+
+**Description:** Inventory of ticket products and associated rules.
+
+| Field Name | Type | Description |
+| --- | --- | --- |
+| ticket_id | INT | Unique identifier (Primary Key) |
+| ticket_name | VARCHAR(100) | Product name (e.g., VIP, General) |
+| max_capacity | INT | Sales limit per ticket type |
+| base_price | NUMERIC(10,2) | Default unit price (Constraint: > 0) |
+| category | VARCHAR(50) | Classification (e.g., Student, Senior, Child) |
+
+**Relationships:** Referenced by `transaction_items.ticket_id`.
+
+---
+
+### 💳 transactions
+
+**Description:** Records of financial exchanges.
+
+| Field Name | Type | Description |
+| --- | --- | --- |
+| transaction_id | INT | Unique identifier (Primary Key) |
+| transaction_date | DATE | Date the transaction occurred |
+| total_amount | NUMERIC(10,2) | Final amount paid |
+| payment_method | VARCHAR(50) | Payment method (e.g., Credit, Cash) |
+| employee_id | INT | Processing staff member (Foreign Key) |
+| visitor_id | INT | Purchasing visitor (Foreign Key) |
+
+**Relationships:** Referenced by `transaction_items.transaction_id`.
+
+---
+
+### 🧾 transaction_items
+
+**Description:** Line-item details for each sale, mapping products to transactions.
+
+| Field Name | Type | Description |
+| --- | --- | --- |
+| item_id | INT | Item sequence (Composite Primary Key) |
+| transaction_id | INT | Parent transaction (Composite PK / Foreign Key) |
+| ticket_id | INT | Specific ticket product (Foreign Key) |
+| quantity | INT | Number of units purchased |
+| price_at_sale | NUMERIC(10,2) | Historical price captured at time of sale |
+
+---
+
+### 🏅 memberships
+
+**Description:** Active subscription status for visitors.
+
+| Field Name | Type | Description |
+| --- | --- | --- |
+| membership_id | INT | Unique identifier (Primary Key) |
+| start_date | DATE | Activation date |
+| expiry_date | DATE | Validity expiration date |
+| visitor_id | INT | Associated customer (Foreign Key) |
 
 ---
 
 ## Docker Setup
 
-The database and pgAdmin run inside Docker containers using `docker-compose`.
+The entire environment can be deployed with a single command:
 
-To start the containers:
-
-```
+```bash
 docker-compose up -d
+
 ```
 
-This will start:
+**Services:**
 
-* PostgreSQL database container
-* pgAdmin management interface
+* **PostgreSQL_DB**: The database engine and storage.
+* **pgadminApp**: Administration GUI available at `http://localhost:8080`.
+
+---
+
+## Data Generation
+
+The database was populated using three methods to ensure realistic testing:
+
+1. **Manual SQL DML**: Targeted `INSERT` statements for verifying constraints.
+2. **Mockaroo**: Generation of ~500 rows per table to evaluate performance at scale.
+3. **pgAdmin GUI**: Interactive entry for rapid administrative changes.
+
+---
+
+## Backup
+
+A full database dump was created for backup verification: `backup_2026.sql`.
+
+* **GUI Method**: Performed via the pgAdmin "Backup" interface.
+* **CLI Method**: Executed via the `pg_dump` utility within the Docker container.
 
 ---
 
 ## Project Structure
 
-```
+```text
 docker-db-project
 │
 ├── docker-compose.yml
 ├── README.md
 │
-└── Stage1
-    ├── createTables.sql
-    ├── dropTables.sql
-    ├── insertTables.sql
-    ├── selectAll.sql
-    ├── backup_2026.sql
-    │
-    └── MockarooFiles
-        ├── employees.sql
-        ├── visitors.sql
-        ├── ticket_types.sql
-        ├── transactions.sql
-        └── transaction_items.sql
+├── Stage1
+│   ├── createTables.sql
+│   ├── dropTables.sql
+│   ├── insertTables.sql
+│   ├── selectAll.sql
+│   ├── ERD/                   # Entity Relationship Diagrams
+│   ├── Screenshots1/          # Execution evidence for Stage 1
+│   ├── stage1-ui.html         # UI Prototype
+│   └── MockarooFiles/         # Raw CSV/SQL datasets
+│
+└── Stage2
+    ├── Queries.sql            # SELECT, UPDATE, DELETE logic
+    ├── Constraints.sql        # Data integrity rules
+    ├── Index.sql              # Performance optimizations
+    ├── RollbackCommit.sql     # Transaction control demos
+    ├── backup2.sql            # Final stage backup
+    └── screenshots/           # Evidence for Stage 2 (EXPLAIN ANALYZE results)
+
 ```
 
 ---
 
 ## Stage 1 Tag
 
-The submission for this stage is marked using the Git tag:
-
 `stage1`
 
 ---
 
-## Data Dictionary
-## 📊 Data Dictionary
+## Stage 2 – Queries, Constraints & Indexes
 
-This section describes each table in the system, including its purpose, fields, and relationships.
+### SELECT Queries
 
----
+We analyzed 8 queries, focusing on execution plans and performance trade-offs between different SQL approaches.
 
-## 👨‍💼 EMPLOYEES
+#### 🔷 JOIN vs. Correlated Subquery (Q1 vs. Q2)
 
-**Description:**
-Stores information about employees working in the system.
+* **Performance Insight**: While the Subquery approach is often more readable, the **JOIN is typically more efficient** for larger datasets. The query planner can optimize a JOIN to scan both tables simultaneously, whereas a correlated subquery often forces the engine to execute a separate lookup for every row.
 
-| Field Name  | Type        | Description                                       |
-| ----------- | ----------- | ------------------------------------------------- |
-| employee_id | INT         | Unique identifier for each employee (Primary Key) |
-| first_name  | VARCHAR(20) | Employee's first name                             |
-| last_name   | VARCHAR(20) | Employee's last name                              |
-| hire_date   | DATE        | Date the employee was hired                       |
+#### 🔷 Date Comparison vs. EXTRACT (Q3 vs. Q4)
 
-**Relationships:**
+* **Performance Insight**: Direct date comparison is **generally superior** because it is "SARGable" (Search Argumentable), allowing PostgreSQL to utilize B-tree indexes. Using the `EXTRACT` function transforms the column value, which prevents index usage and usually triggers a full table scan.
 
-* Referenced by `transactions.employee_id`
+#### 🔷 LIKE vs. ILIKE (Q5 vs. Q6)
+
+* **Performance Insight**: `LIKE` is case-sensitive and utilizes standard B-tree indexes. `ILIKE` improves user experience by being case-insensitive, but requires a specialized index (such as a functional index or `citext`) to maintain high performance on large tables.
 
 ---
 
-## 👤 VISITORS
+### Constraints
 
-**Description:**
-Stores information about visitors/customers of the system.
+To ensure data integrity at the database level, we implemented:
 
-| Field Name        | Type        | Description                                      |
-| ----------------- | ----------- | ------------------------------------------------ |
-| visitor_id        | INT         | Unique identifier for each visitor (Primary Key) |
-| first_name        | VARCHAR(20) | Visitor's first name                             |
-| last_name         | VARCHAR(20) | Visitor's last name                              |
-| phone             | VARCHAR(20) | Visitor's phone number                           |
-| date_of_birth     | DATE        | Visitor's date of birth                          |
-| email             | VARCHAR(50) | Visitor's email address                          |
-| registration_date | DATE        | Date the visitor registered                      |
-
-**Relationships:**
-
-* Referenced by `transactions.visitor_id`
-* Referenced by `memberships.visitor_id`
+* **Check Constraints**: Enforced `base_price > 0` and restricted the `category` column to a pre-defined set of valid strings.
+* **Unique Constraints**: Applied to the `phone` column to prevent duplicate visitor records.
 
 ---
 
-## TICKET_TYPES
+### Indexes
 
-**Description:**
-Stores different types of tickets available for purchase.
-
-| Field Name   | Type          | Description                                          |
-| ------------ | ------------- | ---------------------------------------------------- |
-| ticket_id    | INT           | Unique identifier for each ticket type (Primary Key) |
-| ticket_name  | VARCHAR(100)  | Name of the ticket (e.g., VIP, General)              |
-| max_capacity | INT           | Maximum number of tickets available                  |
-| base_price   | NUMERIC(10,2) | Base price of the ticket                             |
-| category     | VARCHAR(50)   | Category of the ticket (e.g., adult, child, VIP)     |
-
-**Relationships:**
-
-* Referenced by `transaction_items.ticket_id`
-
----
-
-## TRANSACTIONS
-
-**Description:**
-Represents purchases made by visitors.
-
-| Field Name       | Type          | Description                                          |
-| ---------------- | ------------- | ---------------------------------------------------- |
-| transaction_id   | INT           | Unique identifier for each transaction (Primary Key) |
-| transaction_date | DATE          | Date the transaction occurred                        |
-| total_amount     | NUMERIC(10,2) | Total amount paid                                    |
-| payment_method   | VARCHAR(50)   | Payment method (e.g., cash, credit card)             |
-| employee_id      | INT           | Employee who handled the transaction (Foreign Key)   |
-| visitor_id       | INT           | Visitor who made the purchase (Foreign Key)          |
-
-**Relationships:**
-
-* References `employees.employee_id`
-* References `visitors.visitor_id`
-* Referenced by `transaction_items.transaction_id`
-
----
-
-## TRANSACTION_ITEMS
-
-**Description:**
-Stores the individual items (tickets) included in each transaction.
-
-| Field Name     | Type          | Description                                  |
-| -------------- | ------------- | -------------------------------------------- |
-| item_id        | INT           | Identifier for the item within a transaction |
-| transaction_id | INT           | Associated transaction (Foreign Key)         |
-| ticket_id      | INT           | Ticket type purchased (Foreign Key)          |
-| quantity       | INT           | Number of tickets purchased                  |
-| price_at_sale  | NUMERIC(10,2) | Price per ticket at time of sale             |
-
-**Primary Key:**
-
-* Composite key: (item_id, transaction_id)
-
-**Relationships:**
-
-* References `transactions.transaction_id`
-* References `ticket_types.ticket_id`
-
----
-
-##  MEMBERSHIPS
-
-**Description:**
-Stores membership information for visitors.
-
-| Field Name    | Type | Description                                          |
-| ------------- | ---- | ---------------------------------------------------- |
-| membership_id | INT  | Unique identifier for each membership (Primary Key)  |
-| start_date    | DATE | Start date of the membership                         |
-| expiry_date   | DATE | Expiration date of the membership                    |
-| visitor_id    | INT  | Visitor associated with the membership (Foreign Key) |
-
-**Relationships:**
-
-* References `visitors.visitor_id`
-
----
-## Link To AI Studio
-https://ai.studio/apps/e3a41d20-422a-404f-9456-cf01e27ff37b
-
-# Stage 2 – SQL Queries, Constraints & Indexes
-
-## Overview
-In this stage we worked on querying the database, improving data integrity using constraints, and optimizing performance using indexes. We also tested transaction control using commit and rollback operations.
-
----
-
-## SELECT QUERIES
-
-We implemented 8 SELECT queries with different levels of complexity including JOINs, subqueries, aggregation, filtering, and grouping.
-
-### Query 1 – JOIN (Visitors & Transactions)
-This query returns visitors and the number of transactions they made using a JOIN and GROUP BY.
-
-### Query 2 – Subquery version
-This query returns the same result as Query 1 but uses a nested subquery instead of JOIN to compare approaches.
-
-### Query 3 – Date filtering
-This query retrieves transactions from the last 30 days using date comparison.
-
-### Query 4 – Extract function on date
-This query filters transactions by month using the EXTRACT function.
-
-### Query 5 – LIKE operator
-This query filters visitors whose last name starts with a specific letter.
-
-### Query 6 – ILIKE operator
-Same as Query 5 but case-insensitive.
-
-### Query 7 – Average calculation
-This query calculates the average number of transactions per visitor using a subquery.
-
-### Query 8 – HAVING clause
-This query shows visitors who made more than 5 transactions using GROUP BY and HAVING.
-
----
-
-## UPDATE QUERIES
-
-We performed updates to demonstrate modification of existing records:
-
-- Updated a visitor email to test data modification.
-- Updated membership type for a specific record.
-- Increased ticket prices by a percentage.
-
-We verified results before and after each update using SELECT queries.
-
----
-
-## DELETE QUERIES
-
-We tested deletion operations:
-
-- Deleted old transactions based on date condition.
-- Deleted a specific visitor record.
-- Removed invalid or NULL-related membership data.
-
-Each delete operation was verified before and after execution.
-
----
-
-## TRANSACTION CONTROL (COMMIT & ROLLBACK)
-
-We demonstrated database transaction control:
-
-- A rollback operation was used to undo changes and restore previous state.
-- A commit operation was used to permanently save changes to the database.
-
-This shows understanding of safe database operations.
-
----
-
-## CONSTRAINTS
-
-We added constraints using ALTER TABLE to improve data integrity:
-- Ensured valid data formats
-- Prevented invalid or duplicate values
-- Enforced relationships between tables
-
-We tested constraints by attempting invalid inserts, which correctly failed.
-
----
-
-## INDEXES
-
-We created indexes on frequently used columns:
-- Visitor last name
-- Transaction date
-- Visitor ID
-
-We measured query performance before and after indexing and observed improved execution time for filtered queries.
+1. **idx_transactions_date**: Optimized chronological filtering and reporting.
+2. **idx_transactions_visitor_id**: Accelerated foreign key lookups during JOIN operations.
+3. **idx_visitors_last_name**: Dramatically improved search speeds for surnames in the point-of-sale system.
 
 ---
 
 ## Conclusion
-This stage improved our understanding of SQL querying, database optimization, and safe data manipulation techniques.
+
+Stage 2 focused on transforming a structured database into an optimized, production-ready system. By applying 3NF normalization, strategic indexing, and strict integrity constraints, we have developed a system that is efficient, scalable, and resilient to data entry errors.
+
+---
+
+## Stage 2 Tag
+
+`stage2`
