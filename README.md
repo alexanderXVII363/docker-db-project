@@ -1,6 +1,3 @@
-
----
-
 # Docker Database Project
 
 **Submitted by:** Alex & Moshe
@@ -22,7 +19,8 @@
 7. [Backup](#backup)
 8. [Project Structure](#project-structure)
 9. [Stage 1 Tag](#stage-1-tag)
-10. [Stage 2 – Queries, Constraints & Indexes](#stage-2-queries-constraints--indexes)
+10. [Stage 2 – Queries, Constraints & Indexes](#stage-2--queries-constraints--indexes)
+11. [Conclusion](#conclusion)
 
 ---
 
@@ -34,20 +32,19 @@ The system models a **Ticket & Visitor Management System**, tracking visitors, e
 
 The schema is strictly normalized to **3NF** to eliminate data redundancy and ensure referential integrity. The environment is managed through a containerized pgAdmin instance, providing a professional interface for database administration and performance monitoring.
 
-The UI mockup was designed using Google AI Studio:
-
-🔗 [View UI Mockup](https://ai.studio/apps/e3a41d20-422a-404f-9456-cf01e27ff37b)
-
 ---
 
 ## Technologies Used
 
-* **Docker & Docker Compose**: System containerization and service orchestration.
-* **PostgreSQL**: Relational database engine.
-* **pgAdmin 4**: Database administration and visualization.
-* **SQL**: For schema definition (DDL) and complex querying (DML).
-* **Mockaroo**: Bulk dataset generation.
-* **Git / GitHub**: Source control and documentation.
+**Core Stack:**
+- **Docker & Docker Compose**: System containerization and service orchestration.
+- **PostgreSQL**: Relational database engine.
+- **pgAdmin 4**: Database administration and visualization.
+- **SQL**: For schema definition (DDL) and complex querying (DML).
+
+**Development Tools:**
+- **Mockaroo**: Bulk dataset generation.
+- **Git / GitHub**: Source control and documentation.
 
 ---
 
@@ -165,7 +162,6 @@ The entire environment can be deployed with a single command:
 
 ```bash
 docker-compose up -d
-
 ```
 
 **Services:**
@@ -187,7 +183,7 @@ The database was populated using three methods to ensure realistic testing:
 
 ## Backup
 
-A full database dump was created for backup verification: `backup_2026.sql`.
+A full database dump was created for backup verification: `backup.sql`.
 
 * **GUI Method**: Performed via the pgAdmin "Backup" interface.
 * **CLI Method**: Executed via the `pg_dump` utility within the Docker container.
@@ -207,26 +203,25 @@ docker-db-project
 │   ├── dropTables.sql
 │   ├── insertTables.sql
 │   ├── selectAll.sql
-│   ├── ERD/                   # Entity Relationship Diagrams
-│   ├── Screenshots1/          # Execution evidence for Stage 1
-│   ├── stage1-ui.html         # UI Prototype
-│   └── MockarooFiles/         # Raw CSV/SQL datasets
+│   ├── ERD/
+│   ├── Screenshots1/
+│   ├── stage1-ui.html
+│   └── MockarooFiles/
 │
 └── Stage2
-    ├── Queries.sql            # SELECT, UPDATE, DELETE logic
-    ├── Constraints.sql        # Data integrity rules
-    ├── Index.sql              # Performance optimizations
-    ├── RollbackCommit.sql     # Transaction control demos
-    ├── backup2.sql            # Final stage backup
-    └── screenshots/           # Evidence for Stage 2 (EXPLAIN ANALYZE results)
-
+    ├── Queries.sql
+    ├── Constraints.sql
+    ├── Index.sql
+    ├── RollbackCommit.sql
+    ├── backup.sql
+    └── screenshots/
 ```
 
 ---
 
 ## Stage 1 Tag
 
-`stage1`
+`stage1` — marks the submission point for Stage 1 of the project.
 
 ---
 
@@ -234,42 +229,324 @@ docker-db-project
 
 ### SELECT Queries
 
-We analyzed 8 queries, focusing on execution plans and performance trade-offs between different SQL approaches.
+---
 
-#### 🔷 JOIN vs. Correlated Subquery (Q1 vs. Q2)
+#### 🔷 Q1 – JOIN Query
 
-* **Performance Insight**: While the Subquery approach is often more readable, the **JOIN is typically more efficient** for larger datasets. The query planner can optimize a JOIN to scan both tables simultaneously, whereas a correlated subquery often forces the engine to execute a separate lookup for every row.
+```sql
+SELECT v.visitor_id, v.first_name, v.last_name, COUNT(t.ticket_id) AS total_tickets
+FROM visitors v
+JOIN tickets t ON v.visitor_id = t.visitor_id
+GROUP BY v.visitor_id, v.first_name, v.last_name
+ORDER BY total_tickets DESC;
+```
 
-#### 🔷 Date Comparison vs. EXTRACT (Q3 vs. Q4)
+**Purpose:** Count total tickets per visitor using a JOIN with GROUP BY.
 
-* **Performance Insight**: Direct date comparison is **generally superior** because it is "SARGable" (Search Argumentable), allowing PostgreSQL to utilize B-tree indexes. Using the `EXTRACT` function transforms the column value, which prevents index usage and usually triggers a full table scan.
+---
 
-#### 🔷 LIKE vs. ILIKE (Q5 vs. Q6)
+#### 🔷 Q2 – Correlated Subquery
 
-* **Performance Insight**: `LIKE` is case-sensitive and utilizes standard B-tree indexes. `ILIKE` improves user experience by being case-insensitive, but requires a specialized index (such as a functional index or `citext`) to maintain high performance on large tables.
+```sql
+SELECT visitor_id, first_name, last_name,
+    (SELECT COUNT(*) FROM tickets t WHERE t.visitor_id = v.visitor_id) AS total_tickets
+FROM visitors v;
+```
+
+**Purpose:** Count total tickets per visitor using a correlated subquery — an alternative to Q1.
+
+---
+
+#### 🔷 Q3 – Date Comparison Query
+
+```sql
+SELECT *
+FROM tickets
+WHERE purchase_date >= CURRENT_DATE - INTERVAL '30 days';
+```
+
+**Purpose:** Retrieve all tickets purchased in the last 30 days using direct date comparison.
+
+---
+
+#### 🔷 Q4 – EXTRACT Query
+
+```sql
+SELECT *
+FROM tickets
+WHERE EXTRACT(MONTH FROM purchase_date) = EXTRACT(MONTH FROM CURRENT_DATE);
+```
+
+**Purpose:** Retrieve tickets from the current month using EXTRACT — an alternative to Q3.
+
+---
+
+#### 🔷 Q5 – LIKE Query
+
+```sql
+SELECT *
+FROM visitors
+WHERE last_name LIKE 'A%';
+```
+
+**Purpose:** Search visitors whose last name starts with the letter 'A' (case-sensitive).
+
+---
+
+#### 🔷 Q6 – ILIKE Query
+
+```sql
+SELECT *
+FROM visitors
+WHERE last_name ILIKE 'a%';
+```
+
+**Purpose:** Perform a case-insensitive surname search — an alternative to Q5.
+
+---
+
+#### 🔷 Q7 – Average Tickets per Visitor
+
+```sql
+SELECT AVG(ticket_count)
+FROM (
+    SELECT COUNT(*) AS ticket_count
+    FROM tickets
+    GROUP BY visitor_id
+) sub;
+```
+
+**Purpose:** Calculate the average number of tickets purchased per visitor using a subquery.
+
+---
+
+#### 🔷 Q8 – GROUP BY with HAVING
+
+```sql
+SELECT visitor_id, COUNT(*) AS total
+FROM tickets
+GROUP BY visitor_id
+HAVING COUNT(*) > 5;
+```
+
+**Purpose:** Find visitors who have purchased more than 5 tickets using HAVING.
+
+---
+
+### UPDATE Queries
+
+---
+
+#### 🔶 U1 – Update a Single Ticket Type
+
+```sql
+UPDATE tickets
+SET ticket_type = 'VIP'
+WHERE ticket_id = 1;
+```
+
+**Purpose:** Upgrade a specific ticket to VIP status.
+
+---
+
+#### 🔶 U2 – Update a Visitor's Email
+
+```sql
+UPDATE visitors
+SET email = 'updated@email.com'
+WHERE visitor_id = 1;
+```
+
+**Purpose:** Correct or refresh a visitor's contact email address.
+
+---
+
+#### 🔶 U3 – Bulk Price Increase
+
+```sql
+UPDATE tickets
+SET price = price * 1.1;
+```
+
+**Purpose:** Apply a 10% price increase across all tickets.
+
+---
+
+### DELETE Queries
+
+---
+
+#### 🔴 D1 – Delete Old Tickets
+
+```sql
+DELETE FROM tickets
+WHERE purchase_date < '2022-01-01';
+```
+
+**Purpose:** Remove outdated ticket records prior to 2022 to keep the dataset clean.
+
+---
+
+#### 🔴 D2 – Delete a Specific Visitor
+
+```sql
+DELETE FROM visitors
+WHERE visitor_id = 9999;
+```
+
+**Purpose:** Remove a specific visitor record by ID.
+
+---
+
+#### 🔴 D3 – Delete Orphaned Tickets
+
+```sql
+DELETE FROM tickets
+WHERE visitor_id IS NULL;
+```
+
+**Purpose:** Clean up ticket records with no associated visitor.
+
+---
+
+### Query Performance Insights
+
+#### JOIN vs. Correlated Subquery
+
+* JOIN queries are generally faster on large datasets.
+* Correlated subqueries execute a repeated lookup per row and may be slower at scale.
+
+#### Date Comparison vs. EXTRACT
+
+* Direct date comparison (`>=`) is SARGable and takes advantage of indexes efficiently.
+* EXTRACT wraps the column in a function, which prevents index usage and causes full table scans.
+
+#### LIKE vs. ILIKE
+
+* LIKE uses standard B-tree indexes efficiently for prefix searches.
+* ILIKE improves usability but may require a specialized `pg_trgm` index for optimal performance.
 
 ---
 
 ### Constraints
 
-To ensure data integrity at the database level, we implemented:
+To ensure data integrity at the database level, three constraints were implemented:
 
-* **Check Constraints**: Enforced `base_price > 0` and restricted the `category` column to a pre-defined set of valid strings.
-* **Unique Constraints**: Applied to the `phone` column to prevent duplicate visitor records.
+---
+
+#### ✅ Constraint 1 – Ticket Price Must Be Positive
+
+```sql
+-- Constraint 1: Check that the ticket price is greater than zero
+ALTER TABLE Tickets
+ADD CONSTRAINT CHK_TicketPrice CHECK (Price > 0);
+```
+
+**Purpose:** Prevents invalid ticket records with zero or negative prices from being inserted.
+
+---
+
+#### ✅ Constraint 2 – Unique Visitor Phone Numbers
+
+```sql
+-- Constraint 2: Make sure visitor phone numbers are not duplicated
+ALTER TABLE Visitors
+ADD CONSTRAINT UQ_VisitorPhone UNIQUE (PhoneNumber);
+```
+
+**Purpose:** Enforces that each visitor has a unique phone number, preventing duplicate registrations.
+
+---
+
+#### ✅ Constraint 3 – Valid Ticket Type Values
+
+```sql
+-- Constraint 3: Check that the ticket type is valid (from a specific list)
+ALTER TABLE Tickets
+ADD CONSTRAINT CHK_TicketType CHECK (TicketType IN ('Regular', 'Child', 'Student', 'Senior'));
+```
+
+**Purpose:** Restricts the `TicketType` column to a predefined set of valid categories, preventing bad data entry.
 
 ---
 
 ### Indexes
 
-1. **idx_transactions_date**: Optimized chronological filtering and reporting.
-2. **idx_transactions_visitor_id**: Accelerated foreign key lookups during JOIN operations.
-3. **idx_visitors_last_name**: Dramatically improved search speeds for surnames in the point-of-sale system.
+Three indexes were created to optimize the most frequent query patterns:
+
+---
+
+#### ⚡ Index 1 – Purchase Date
+
+```sql
+-- Index 1: Speed up searches and reports based on ticket purchase date
+CREATE INDEX IDX_Tickets_PurchaseDate ON Tickets(PurchaseDate);
+```
+
+**Purpose:** Optimizes date-range queries (Q3) and time-based reporting. Works directly with the SARGable `>=` comparison used in Q3.
+
+---
+
+#### ⚡ Index 2 – Visitor ID on Tickets
+
+```sql
+-- Index 2: Speed up queries that link tickets to specific visitors
+CREATE INDEX IDX_Tickets_VisitorID ON Tickets(VisitorID);
+```
+
+**Purpose:** Improves JOIN performance between `tickets` and `visitors` tables (Q1, Q2).
+
+---
+
+#### ⚡ Index 3 – Visitor Last Name
+
+```sql
+-- Index 3: Speed up searches for visitors by their last name at the ticket counter
+CREATE INDEX IDX_Visitors_LastName ON Visitors(LastName);
+```
+
+**Purpose:** Accelerates surname-based prefix searches using `LIKE 'A%'` (Q5).
+
+---
+
+### Rollback & Commit
+
+Transaction control was demonstrated using `BEGIN`, `ROLLBACK`, and `COMMIT` to verify data safety.
+
+**Rollback example** — changes are reversed:
+
+```sql
+BEGIN;
+
+DELETE FROM tickets WHERE purchase_date < '2022-01-01';
+
+-- Verify the deletion took effect within the transaction
+SELECT COUNT(*) FROM tickets;
+
+-- Undo all changes — data is fully restored
+ROLLBACK;
+```
+
+**Commit example** — changes are permanently saved:
+
+```sql
+BEGIN;
+
+UPDATE visitors
+SET email = 'confirmed@email.com'
+WHERE visitor_id = 1;
+
+-- Persist the change permanently
+COMMIT;
+```
+
+**Key takeaway:** `ROLLBACK` undoes all statements since the last `BEGIN`, while `COMMIT` makes them permanent. This is critical for maintaining data integrity during bulk operations.
 
 ---
 
 ## Conclusion
 
-Stage 2 focused on transforming a structured database into an optimized, production-ready system. By applying 3NF normalization, strategic indexing, and strict integrity constraints, we have developed a system that is efficient, scalable, and resilient to data entry errors.
+Stage 2 focused on transforming a structured relational schema into an optimized, production-ready system. By applying 3NF normalization, strategic indexing, and strict integrity constraints, we developed a system that is scalable, efficient, and resilient to data entry errors. Future extensions could include role-based access control, audit logging, and a live reporting dashboard.
 
 ---
 
