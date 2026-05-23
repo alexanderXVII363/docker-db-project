@@ -32,6 +32,9 @@ The system models a **Ticket & Visitor Management System**, tracking visitors, e
 
 The schema is strictly normalized to **3NF** to eliminate data redundancy and ensure referential integrity. The environment is managed through a containerized pgAdmin instance, providing a professional interface for database administration and performance monitoring.
 
+The UI mockup was designed using Google AI Studio:
+🔗 [View UI Mockup](https://ai.studio/apps/e3a41d20-422a-404f-9456-cf01e27ff37b)
+
 ---
 
 ## Technologies Used
@@ -67,12 +70,12 @@ The database architecture consists of six core tables:
 
 **Description:** Stores staff information for system operations.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| employee_id | INT | Unique identifier (Primary Key) |
-| first_name | VARCHAR(20) | Employee's first name |
-| last_name | VARCHAR(20) | Employee's last name |
-| hire_date | DATE | Employment commencement date |
+| Field Name  | Type         | Description                            |
+| ----------- | ------------ | -------------------------------------- |
+| employee_id | INT          | Unique identifier (Primary Key)        |
+| first_name  | VARCHAR(20)  | Employee's first name                  |
+| last_name   | VARCHAR(20)  | Employee's last name                   |
+| hire_date   | DATE         | Employment commencement date           |
 
 **Relationships:** Referenced by `transactions.employee_id`.
 
@@ -82,15 +85,15 @@ The database architecture consists of six core tables:
 
 **Description:** Stores registered customer data.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| visitor_id | INT | Unique identifier (Primary Key) |
-| first_name | VARCHAR(20) | Visitor's first name |
-| last_name | VARCHAR(20) | Visitor's last name |
-| phone | VARCHAR(20) | Contact number (Unique Constraint) |
-| date_of_birth | DATE | Visitor's date of birth |
-| email | VARCHAR(50) | Primary contact email address |
-| registration_date | DATE | Profile creation date |
+| Field Name        | Type         | Description                            |
+| ----------------- | ------------ | -------------------------------------- |
+| visitor_id        | INT          | Unique identifier (Primary Key)        |
+| first_name        | VARCHAR(20)  | Visitor's first name                   |
+| last_name         | VARCHAR(20)  | Visitor's last name                    |
+| phone             | VARCHAR(20)  | Contact number (Unique Constraint)     |
+| date_of_birth     | DATE         | Visitor's date of birth                |
+| email             | VARCHAR(50)  | Primary contact email address          |
+| registration_date | DATE         | Profile creation date                  |
 
 **Relationships:** Referenced by `transactions.visitor_id` and `memberships.visitor_id`.
 
@@ -100,13 +103,13 @@ The database architecture consists of six core tables:
 
 **Description:** Inventory of ticket products and associated rules.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| ticket_id | INT | Unique identifier (Primary Key) |
-| ticket_name | VARCHAR(100) | Product name (e.g., VIP, General) |
-| max_capacity | INT | Sales limit per ticket type |
-| base_price | NUMERIC(10,2) | Default unit price (Constraint: > 0) |
-| category | VARCHAR(50) | Classification (e.g., Student, Senior, Child) |
+| Field Name   | Type           | Description                                      |
+| ------------ | -------------- | ------------------------------------------------ |
+| ticket_id    | INT            | Unique identifier (Primary Key)                  |
+| ticket_name  | VARCHAR(100)   | Product name (e.g., VIP, General)                |
+| max_capacity | INT            | Sales limit per ticket type                      |
+| base_price   | NUMERIC(10,2)  | Default unit price (Constraint: > 0)             |
+| category     | VARCHAR(50)    | Classification (e.g., Student, Senior, Child)    |
 
 **Relationships:** Referenced by `transaction_items.ticket_id`.
 
@@ -116,14 +119,14 @@ The database architecture consists of six core tables:
 
 **Description:** Records of financial exchanges.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| transaction_id | INT | Unique identifier (Primary Key) |
-| transaction_date | DATE | Date the transaction occurred |
-| total_amount | NUMERIC(10,2) | Final amount paid |
-| payment_method | VARCHAR(50) | Payment method (e.g., Credit, Cash) |
-| employee_id | INT | Processing staff member (Foreign Key) |
-| visitor_id | INT | Purchasing visitor (Foreign Key) |
+| Field Name       | Type           | Description                                |
+| ---------------- | -------------- | ------------------------------------------ |
+| transaction_id   | INT            | Unique identifier (Primary Key)            |
+| transaction_date | DATE           | Date the transaction occurred              |
+| total_amount     | NUMERIC(10,2)  | Final amount paid                          |
+| payment_method   | VARCHAR(50)    | Payment method (e.g., Credit, Cash)        |
+| employee_id      | INT            | Processing staff member (Foreign Key)      |
+| visitor_id       | INT            | Purchasing visitor (Foreign Key)           |
 
 **Relationships:** Referenced by `transaction_items.transaction_id`.
 
@@ -133,13 +136,13 @@ The database architecture consists of six core tables:
 
 **Description:** Line-item details for each sale, mapping products to transactions.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| item_id | INT | Item sequence (Composite Primary Key) |
-| transaction_id | INT | Parent transaction (Composite PK / Foreign Key) |
-| ticket_id | INT | Specific ticket product (Foreign Key) |
-| quantity | INT | Number of units purchased |
-| price_at_sale | NUMERIC(10,2) | Historical price captured at time of sale |
+| Field Name    | Type           | Description                                      |
+| ------------- | -------------- | ------------------------------------------------ |
+| item_id       | INT            | Item sequence (Composite Primary Key)            |
+| transaction_id| INT            | Parent transaction (Composite PK / Foreign Key)  |
+| ticket_id     | INT            | Specific ticket product (Foreign Key)            |
+| quantity      | INT            | Number of units purchased                        |
+| price_at_sale | NUMERIC(10,2)  | Historical price captured at time of sale        |
 
 ---
 
@@ -147,12 +150,12 @@ The database architecture consists of six core tables:
 
 **Description:** Active subscription status for visitors.
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| membership_id | INT | Unique identifier (Primary Key) |
-| start_date | DATE | Activation date |
-| expiry_date | DATE | Validity expiration date |
-| visitor_id | INT | Associated customer (Foreign Key) |
+| Field Name    | Type  | Description                             |
+| ------------- | ----- | --------------------------------------- |
+| membership_id | INT   | Unique identifier (Primary Key)         |
+| start_date    | DATE  | Activation date                         |
+| expiry_date   | DATE  | Validity expiration date                |
+| visitor_id    | INT   | Associated customer (Foreign Key)       |
 
 ---
 
@@ -165,7 +168,6 @@ docker-compose up -d
 ```
 
 **Services:**
-
 * **PostgreSQL_DB**: The database engine and storage.
 * **pgadminApp**: Administration GUI available at `http://localhost:8080`.
 
@@ -175,15 +177,26 @@ docker-compose up -d
 
 The database was populated using three methods to ensure realistic testing:
 
-1. **Manual SQL DML**: Targeted `INSERT` statements for verifying constraints.
-2. **Mockaroo**: Generation of ~500 rows per table to evaluate performance at scale.
-3. **pgAdmin GUI**: Interactive entry for rapid administrative changes.
+1. **Manual SQL DML**: Targeted `INSERT` statements for verifying constraints. See `Stage1/insertTables.sql`.
+2. **Mockaroo**: Generation of ~500 rows per table. Files saved in `Stage1/MockarooFiles/`.
+3. **pgAdmin GUI**: Interactive entry for rapid administrative changes. Screenshots in `Stage1/Screenshots1/`.
+
+**Row counts:**
+
+| Table             | Rows   |
+| ----------------- | ------ |
+| employees         | 500    |
+| visitors          | 500    |
+| ticket_types      | 500    |
+| transactions      | 20,000 |
+| transaction_items | 20,000 |
+| memberships       | 500    |
 
 ---
 
 ## Backup
 
-A full database dump was created for backup verification: `backup.sql`.
+A full database dump was created for backup verification: `Stage2/backup.sql`.
 
 * **GUI Method**: Performed via the pgAdmin "Backup" interface.
 * **CLI Method**: Executed via the `pg_dump` utility within the Docker container.
@@ -203,10 +216,25 @@ docker-db-project
 │   ├── dropTables.sql
 │   ├── insertTables.sql
 │   ├── selectAll.sql
-│   ├── ERD/
-│   ├── Screenshots1/
-│   ├── stage1-ui.html
-│   └── MockarooFiles/
+│   ├── ERD/                    # Entity Relationship Diagrams
+│   ├── Screenshots1/           # Execution evidence for Stage 1
+│   ├── stage1-ui.html          # UI Prototype
+│   └── MockarooFiles/          # Generated SQL datasets
+│       ├── employees.sql
+│       ├── visitors.sql
+│       ├── ticket_types.sql
+│       ├── transactions.sql
+│       ├── transaction_items.sql
+│       └── memberships.sql
+│
+├── init-db/                    # Auto-executed on container start
+│   ├── 01-create-tables.sql
+│   ├── 02-employees.sql
+│   ├── 03-visitors.sql
+│   ├── 04-ticket_types.sql
+│   ├── 05-transactions.sql
+│   ├── 06-transaction_items.sql
+│   └── 07-seed-data.sql
 │
 └── Stage2
     ├── Queries.sql
@@ -227,326 +255,457 @@ docker-db-project
 
 ## Stage 2 – Queries, Constraints & Indexes
 
-### SELECT Queries
+### Overview
+
+In this stage we queried the database, enforced data integrity using constraints, optimized performance using indexes, and demonstrated transaction control using COMMIT and ROLLBACK.
 
 ---
 
-#### 🔷 Q1 – JOIN Query
+### SELECT QUERIES
+
+We implemented 8 SELECT queries. 4 of them were written in two versions to compare efficiency.
+
+---
+
+#### 🔷 Query 1 – JOIN: מבקרים ומספר העסקאות שלהם (גרסה ראשונה)
+
+**תיאור בעברית:**
+שאילתא זו מחזירה את כל המבקרים יחד עם מספר העסקאות שביצע כל אחד מהם. השאילתא משתמשת ב-JOIN בין טבלת visitors לטבלת transactions ומקבצת את התוצאות לפי מבקר.
 
 ```sql
-SELECT v.visitor_id, v.first_name, v.last_name, COUNT(t.ticket_id) AS total_tickets
+SELECT v.visitor_id, v.first_name, v.last_name,
+       COUNT(tr.transaction_id) AS total_transactions
 FROM visitors v
-JOIN tickets t ON v.visitor_id = t.visitor_id
+JOIN transactions tr ON v.visitor_id = tr.visitor_id
 GROUP BY v.visitor_id, v.first_name, v.last_name
-ORDER BY total_tickets DESC;
+ORDER BY total_transactions DESC;
 ```
 
-**Purpose:** Count total tickets per visitor using a JOIN with GROUP BY.
+📸 Screenshot: `Q1_JOIN.png`
 
 ---
 
-#### 🔷 Q2 – Correlated Subquery
+#### 🔷 Query 2 – Correlated Subquery: מבקרים ומספר העסקאות שלהם (גרסה שנייה)
+
+**תיאור בעברית:**
+שאילתא זו מחזירה את אותה תוצאה כמו שאילתא 1, אך משתמשת בתת-שאילתא מתואמת (correlated subquery) במקום JOIN — לכל שורה בטבלת visitors מתבצעת שאילתא נפרדת.
 
 ```sql
-SELECT visitor_id, first_name, last_name,
-    (SELECT COUNT(*) FROM tickets t WHERE t.visitor_id = v.visitor_id) AS total_tickets
-FROM visitors v;
+SELECT v.visitor_id, v.first_name, v.last_name,
+    (SELECT COUNT(*) FROM transactions tr WHERE tr.visitor_id = v.visitor_id) AS total_transactions
+FROM visitors v
+ORDER BY total_transactions DESC;
 ```
 
-**Purpose:** Count total tickets per visitor using a correlated subquery — an alternative to Q1.
+📸 Screenshot: `Q2_SUBQUERY.png`
+
+#### ⚖️ השוואת יעילות: JOIN לעומת Correlated Subquery
+
+| גרסה | יתרון | חיסרון |
+|------|-------|---------|
+| JOIN (Q1) | PostgreSQL מבצע סריקה אחת של שתי הטבלאות — יעיל יותר | קוד מעט ארוך יותר |
+| Subquery (Q2) | קריא יותר לעיתים | מריץ correlated subquery נפרדת לכל שורה — איטי יותר |
+
+**מסקנה:** גרסת ה-JOIN יעילה יותר. ה-correlated subquery מריצה שאילתא נוספת עבור כל מבקר בנפרד, מה שהופך אותה לאיטית יותר על מסדי נתונים גדולים.
 
 ---
 
-#### 🔷 Q3 – Date Comparison Query
+#### 🔷 Query 3 – DATE: עסקאות מ-30 הימים האחרונים (גרסה ראשונה)
+
+**תיאור בעברית:**
+שאילתא זו מחזירה את כל העסקאות שבוצעו ב-30 הימים האחרונים באמצעות השוואת תאריכים ישירה.
 
 ```sql
-SELECT *
-FROM tickets
-WHERE purchase_date >= CURRENT_DATE - INTERVAL '30 days';
+SELECT transaction_id, visitor_id, employee_id,
+       transaction_date, total_amount, payment_method
+FROM transactions
+WHERE transaction_date >= CURRENT_DATE - INTERVAL '30 days'
+ORDER BY transaction_date DESC;
 ```
 
-**Purpose:** Retrieve all tickets purchased in the last 30 days using direct date comparison.
+📸 Screenshot: `Q3_DATE.png`
 
 ---
 
-#### 🔷 Q4 – EXTRACT Query
+#### 🔷 Query 4 – EXTRACT: עסקאות לפי חודש ושנה (גרסה שנייה)
+
+**תיאור בעברית:**
+שאילתא זו מחזירה עסקאות שבוצעו בחודש הנוכחי באמצעות פונקציית EXTRACT לפירוק התאריך לחלקיו — יום, חודש ושנה.
 
 ```sql
-SELECT *
-FROM tickets
-WHERE EXTRACT(MONTH FROM purchase_date) = EXTRACT(MONTH FROM CURRENT_DATE);
+SELECT transaction_id, visitor_id, employee_id,
+       transaction_date, total_amount,
+       EXTRACT(DAY   FROM transaction_date) AS day,
+       EXTRACT(MONTH FROM transaction_date) AS month,
+       EXTRACT(YEAR  FROM transaction_date) AS year
+FROM transactions
+WHERE EXTRACT(MONTH FROM transaction_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+  AND EXTRACT(YEAR  FROM transaction_date) = EXTRACT(YEAR  FROM CURRENT_DATE)
+ORDER BY transaction_date DESC;
 ```
 
-**Purpose:** Retrieve tickets from the current month using EXTRACT — an alternative to Q3.
+📸 Screenshot: `Q4_EXTRACT.png`
+
+#### ⚖️ השוואת יעילות: השוואת תאריך ישירה לעומת EXTRACT
+
+| גרסה | יתרון | חיסרון |
+|------|-------|---------|
+| השוואה ישירה (Q3) | SARGable — יכולה להשתמש באינדקס על transaction_date | פחות גמישה לפילטרים לפי חלקי תאריך |
+| EXTRACT (Q4) | מאפשרת פילטור לפי יום/חודש/שנה בנפרד | שוברת את האינדקס — גורמת ל-Seq Scan |
+
+**מסקנה:** השוואת התאריך הישירה (Q3) יעילה יותר כי היא מאפשרת שימוש באינדקס. EXTRACT מחשבת ערך חדש לכל שורה ומונעת שימוש באינדקס.
 
 ---
 
-#### 🔷 Q5 – LIKE Query
+#### 🔷 Query 5 – LIKE: חיפוש מבקרים לפי שם משפחה (גרסה ראשונה)
+
+**תיאור בעברית:**
+שאילתא זו מחזירה את כל המבקרים ששם משפחתם מתחיל באות 'A'. השאילתא תלויה באותיות גדולות וקטנות (case-sensitive).
 
 ```sql
-SELECT *
+SELECT visitor_id, first_name, last_name, email, phone
 FROM visitors
-WHERE last_name LIKE 'A%';
+WHERE last_name LIKE 'A%'
+ORDER BY last_name;
 ```
 
-**Purpose:** Search visitors whose last name starts with the letter 'A' (case-sensitive).
+📸 Screenshot: `Q5_LIKE.png`
 
 ---
 
-#### 🔷 Q6 – ILIKE Query
+#### 🔷 Query 6 – ILIKE: חיפוש מבקרים ללא תלות בגודל אות (גרסה שנייה)
+
+**תיאור בעברית:**
+שאילתא זו זהה לשאילתא 5 אך אינה מבחינה בין אותיות גדולות וקטנות — תמצא גם 'alex' וגם 'Alex'.
 
 ```sql
-SELECT *
+SELECT visitor_id, first_name, last_name, email, phone
 FROM visitors
-WHERE last_name ILIKE 'a%';
+WHERE last_name ILIKE 'a%'
+ORDER BY last_name;
 ```
 
-**Purpose:** Perform a case-insensitive surname search — an alternative to Q5.
+📸 Screenshot: `Q6_ILIKE.png`
+
+#### ⚖️ השוואת יעילות: LIKE לעומת ILIKE
+
+| גרסה | יתרון | חיסרון |
+|------|-------|---------|
+| LIKE (Q5) | יכולה להשתמש באינדקס B-tree על last_name — מהירה יותר | תלויה באותיות גדולות/קטנות |
+| ILIKE (Q6) | נוחה יותר למשתמש — מוצאת 'alex' ו-'Alex' | דורשת אינדקס מיוחד לביצועים אופטימליים |
+
+**מסקנה:** LIKE מהירה יותר כי היא תואמת לאינדקס על last_name. ILIKE נוחה יותר למשתמש אבל איטית יותר ללא אינדקס מיוחד.
 
 ---
 
-#### 🔷 Q7 – Average Tickets per Visitor
+#### 🔷 Query 7 – AVG: ממוצע עסקאות למבקר
+
+**תיאור בעברית:**
+שאילתא זו מחשבת את המספר הממוצע של עסקאות שביצע כל מבקר, באמצעות תת-שאילתא ופונקציית AVG.
 
 ```sql
-SELECT AVG(ticket_count)
+SELECT AVG(transaction_count) AS avg_transactions_per_visitor
 FROM (
-    SELECT COUNT(*) AS ticket_count
-    FROM tickets
+    SELECT visitor_id, COUNT(*) AS transaction_count
+    FROM transactions
     GROUP BY visitor_id
 ) sub;
 ```
 
-**Purpose:** Calculate the average number of tickets purchased per visitor using a subquery.
+📸 Screenshot: `Q7_AVG.png`
 
 ---
 
-#### 🔷 Q8 – GROUP BY with HAVING
+#### 🔷 Query 8 – HAVING: מבקרים עם יותר מ-5 עסקאות
+
+**תיאור בעברית:**
+שאילתא זו מחזירה רק את המבקרים שביצעו יותר מ-5 עסקאות, תוך שימוש ב-GROUP BY ו-HAVING לסינון לאחר הקיבוץ.
 
 ```sql
-SELECT visitor_id, COUNT(*) AS total
-FROM tickets
-GROUP BY visitor_id
-HAVING COUNT(*) > 5;
+SELECT v.visitor_id, v.first_name, v.last_name,
+       COUNT(tr.transaction_id) AS total_transactions
+FROM visitors v
+JOIN transactions tr ON v.visitor_id = tr.visitor_id
+GROUP BY v.visitor_id, v.first_name, v.last_name
+HAVING COUNT(tr.transaction_id) > 5
+ORDER BY total_transactions DESC;
 ```
 
-**Purpose:** Find visitors who have purchased more than 5 tickets using HAVING.
+📸 Screenshot: `Q8_HAVING.png`
 
 ---
 
-### UPDATE Queries
+### UPDATE QUERIES
 
----
+#### 🔶 Update 1 – עדכון שם סוג כרטיס
 
-#### 🔶 U1 – Update a Single Ticket Type
+**תיאור:** עדכון שם סוג הכרטיס בטבלת ticket_types עבור רשומה ספציפית.
 
 ```sql
-UPDATE tickets
-SET ticket_type = 'VIP'
+-- לפני
+SELECT * FROM ticket_types WHERE ticket_id = 1;
+
+UPDATE ticket_types
+SET ticket_name = 'VIP Experience'
 WHERE ticket_id = 1;
+
+-- אחרי
+SELECT * FROM ticket_types WHERE ticket_id = 1;
 ```
 
-**Purpose:** Upgrade a specific ticket to VIP status.
+📸 Screenshots: `UPDATE_BEFORE.png`, `UPDATE_AFTER.png`
 
 ---
 
-#### 🔶 U2 – Update a Visitor's Email
+#### 🔶 Update 2 – עדכון אימייל מבקר
+
+**תיאור:** עדכון כתובת האימייל של מבקר ספציפי לפי מזהה.
 
 ```sql
+-- לפני
+SELECT * FROM visitors WHERE visitor_id = 1;
+
 UPDATE visitors
 SET email = 'updated@email.com'
 WHERE visitor_id = 1;
+
+-- אחרי
+SELECT * FROM visitors WHERE visitor_id = 1;
 ```
 
-**Purpose:** Correct or refresh a visitor's contact email address.
-
 ---
 
-#### 🔶 U3 – Bulk Price Increase
+#### 🔶 Update 3 – העלאת מחירי כרטיסים
+
+**תיאור:** העלאת מחיר הבסיס של כל סוגי הכרטיסים ב-10%.
 
 ```sql
-UPDATE tickets
-SET price = price * 1.1;
+-- לפני
+SELECT * FROM ticket_types;
+
+UPDATE ticket_types
+SET base_price = base_price * 1.1;
+
+-- אחרי
+SELECT * FROM ticket_types;
 ```
 
-**Purpose:** Apply a 10% price increase across all tickets.
-
 ---
 
-### DELETE Queries
+### DELETE QUERIES
 
----
+#### 🔴 Delete 1 – מחיקת עסקאות ישנות
 
-#### 🔴 D1 – Delete Old Tickets
+**תיאור:** מחיקת עסקאות שבוצעו לפני שנת 2022.
 
 ```sql
-DELETE FROM tickets
-WHERE purchase_date < '2022-01-01';
+-- לפני
+SELECT * FROM transactions WHERE transaction_date < '2022-01-01' LIMIT 5;
+
+DELETE FROM transactions
+WHERE transaction_date < '2022-01-01';
+
+-- אחרי
+SELECT * FROM transactions WHERE transaction_date < '2022-01-01';
 ```
 
-**Purpose:** Remove outdated ticket records prior to 2022 to keep the dataset clean.
+📸 Screenshots: `DELETE_BEFORE.png`, `DELETE_AFTER.png`
 
 ---
 
-#### 🔴 D2 – Delete a Specific Visitor
+#### 🔴 Delete 2 – מחיקת מבקר ספציפי
+
+**תיאור:** מחיקת מבקר לפי מזהה ספציפי.
 
 ```sql
+-- לפני
+SELECT * FROM visitors WHERE visitor_id = 9999;
+
 DELETE FROM visitors
 WHERE visitor_id = 9999;
+
+-- אחרי
+SELECT * FROM visitors WHERE visitor_id = 9999;
 ```
 
-**Purpose:** Remove a specific visitor record by ID.
-
 ---
 
-#### 🔴 D3 – Delete Orphaned Tickets
+#### 🔴 Delete 3 – מחיקת פריטי עסקה ישנים
+
+**תיאור:** מחיקת פריטים מטבלת transaction_items שהעסקה שלהם בוצעה לפני 2022.
 
 ```sql
-DELETE FROM tickets
-WHERE visitor_id IS NULL;
+-- לפני
+SELECT ti.* FROM transaction_items ti
+JOIN transactions tr ON ti.transaction_id = tr.transaction_id
+WHERE tr.transaction_date < '2022-01-01' LIMIT 5;
+
+DELETE FROM transaction_items
+WHERE transaction_id IN (
+    SELECT transaction_id FROM transactions
+    WHERE transaction_date < '2022-01-01'
+);
+
+-- אחרי
+SELECT * FROM transaction_items LIMIT 5;
 ```
 
-**Purpose:** Clean up ticket records with no associated visitor.
-
 ---
 
-### Query Performance Insights
+### TRANSACTION CONTROL (COMMIT & ROLLBACK)
 
-#### JOIN vs. Correlated Subquery
+#### Rollback Demo
 
-* JOIN queries are generally faster on large datasets.
-* Correlated subqueries execute a repeated lookup per row and may be slower at scale.
-
-#### Date Comparison vs. EXTRACT
-
-* Direct date comparison (`>=`) is SARGable and takes advantage of indexes efficiently.
-* EXTRACT wraps the column in a function, which prevents index usage and causes full table scans.
-
-#### LIKE vs. ILIKE
-
-* LIKE uses standard B-tree indexes efficiently for prefix searches.
-* ILIKE improves usability but may require a specialized `pg_trgm` index for optimal performance.
-
----
-
-### Constraints
-
-To ensure data integrity at the database level, three constraints were implemented:
-
----
-
-#### ✅ Constraint 1 – Ticket Price Must Be Positive
+**תיאור:** ביצוע עדכון, הצגת המצב החדש, ולאחר מכן ביטול השינוי עם ROLLBACK.
 
 ```sql
--- Constraint 1: Check that the ticket price is greater than zero
-ALTER TABLE Tickets
-ADD CONSTRAINT CHK_TicketPrice CHECK (Price > 0);
-```
+-- Step 1: Check current state
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 1;
 
-**Purpose:** Prevents invalid ticket records with zero or negative prices from being inserted.
-
----
-
-#### ✅ Constraint 2 – Unique Visitor Phone Numbers
-
-```sql
--- Constraint 2: Make sure visitor phone numbers are not duplicated
-ALTER TABLE Visitors
-ADD CONSTRAINT UQ_VisitorPhone UNIQUE (PhoneNumber);
-```
-
-**Purpose:** Enforces that each visitor has a unique phone number, preventing duplicate registrations.
-
----
-
-#### ✅ Constraint 3 – Valid Ticket Type Values
-
-```sql
--- Constraint 3: Check that the ticket type is valid (from a specific list)
-ALTER TABLE Tickets
-ADD CONSTRAINT CHK_TicketType CHECK (TicketType IN ('Regular', 'Child', 'Student', 'Senior'));
-```
-
-**Purpose:** Restricts the `TicketType` column to a predefined set of valid categories, preventing bad data entry.
-
----
-
-### Indexes
-
-Three indexes were created to optimize the most frequent query patterns:
-
----
-
-#### ⚡ Index 1 – Purchase Date
-
-```sql
--- Index 1: Speed up searches and reports based on ticket purchase date
-CREATE INDEX IDX_Tickets_PurchaseDate ON Tickets(PurchaseDate);
-```
-
-**Purpose:** Optimizes date-range queries (Q3) and time-based reporting. Works directly with the SARGable `>=` comparison used in Q3.
-
----
-
-#### ⚡ Index 2 – Visitor ID on Tickets
-
-```sql
--- Index 2: Speed up queries that link tickets to specific visitors
-CREATE INDEX IDX_Tickets_VisitorID ON Tickets(VisitorID);
-```
-
-**Purpose:** Improves JOIN performance between `tickets` and `visitors` tables (Q1, Q2).
-
----
-
-#### ⚡ Index 3 – Visitor Last Name
-
-```sql
--- Index 3: Speed up searches for visitors by their last name at the ticket counter
-CREATE INDEX IDX_Visitors_LastName ON Visitors(LastName);
-```
-
-**Purpose:** Accelerates surname-based prefix searches using `LIKE 'A%'` (Q5).
-
----
-
-### Rollback & Commit
-
-Transaction control was demonstrated using `BEGIN`, `ROLLBACK`, and `COMMIT` to verify data safety.
-
-**Rollback example** — changes are reversed:
-
-```sql
-BEGIN;
-
-DELETE FROM tickets WHERE purchase_date < '2022-01-01';
-
--- Verify the deletion took effect within the transaction
-SELECT COUNT(*) FROM tickets;
-
--- Undo all changes — data is fully restored
-ROLLBACK;
-```
-
-**Commit example** — changes are permanently saved:
-
-```sql
+-- Step 2: Begin transaction and update
 BEGIN;
 
 UPDATE visitors
-SET email = 'confirmed@email.com'
+SET email = 'rollback_test@email.com'
 WHERE visitor_id = 1;
 
--- Persist the change permanently
-COMMIT;
+-- Step 3: State after update (change visible inside transaction)
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 1;
+
+-- Step 4: Undo all changes
+ROLLBACK;
+
+-- Step 5: State after rollback (original value restored)
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 1;
 ```
 
-**Key takeaway:** `ROLLBACK` undoes all statements since the last `BEGIN`, while `COMMIT` makes them permanent. This is critical for maintaining data integrity during bulk operations.
+📸 Screenshots: `Rollback_Step1_Empty.jpeg`, `Rollback_Step2_Restored.jpeg`
+
+---
+
+#### Commit Demo
+
+**תיאור:** ביצוע עדכון, הצגת המצב החדש, ולאחר מכן שמירה קבועה עם COMMIT.
+
+```sql
+-- Step 1: Check current state
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 2;
+
+-- Step 2: Begin transaction and update
+BEGIN;
+
+UPDATE visitors
+SET email = 'commit_test@email.com'
+WHERE visitor_id = 2;
+
+-- Step 3: State after update
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 2;
+
+-- Step 4: Save permanently
+COMMIT;
+
+-- Step 5: State after commit (change permanently saved)
+SELECT visitor_id, email FROM visitors WHERE visitor_id = 2;
+```
+
+📸 Screenshot: `Commit_Success.jpeg`
+
+---
+
+### CONSTRAINTS
+
+#### ✅ Constraint 1 – מחיר חיובי לכרטיס
+
+**תיאור:** הוספת אילוץ CHECK שמבטיח שמחיר הכרטיס תמיד גדול מאפס.
+
+```sql
+ALTER TABLE ticket_types
+ADD CONSTRAINT chk_base_price CHECK (base_price > 0);
+```
+
+**מוטיבציה:** מניעת הכנסת כרטיסים עם מחיר שלילי או אפס שאינו הגיוני עסקית.
+
+📸 Screenshots: `Constraint1_Add_Success.jpeg`, `Constraint1_Trigger_Error.jpeg`
+
+---
+
+#### ✅ Constraint 2 – ייחודיות מספר טלפון
+
+**תיאור:** הוספת אילוץ UNIQUE על עמודת phone של המבקרים.
+
+```sql
+ALTER TABLE visitors
+ADD CONSTRAINT uq_visitor_phone UNIQUE (phone);
+```
+
+**מוטיבציה:** מניעת רישום אותו מספר טלפון פעמיים, מבטיח שכל מבקר ייחודי במערכת.
+
+📸 Screenshots: `Constraint2_Add_Success.jpeg`, `Constraint2_Trigger_Error.jpeg`, `Constraint2_Valid_Insert_Moshe.jpeg`
+
+---
+
+#### ✅ Constraint 3 – קטגוריית כרטיס חוקית
+
+**תיאור:** הוספת אילוץ CHECK שמגביל את עמודת category לערכים מוגדרים מראש.
+
+```sql
+ALTER TABLE ticket_types
+ADD CONSTRAINT chk_category CHECK (category IN ('Regular', 'Child', 'Student', 'Senior', 'VIP'));
+```
+
+**מוטיבציה:** מניעת הכנסת קטגוריות לא חוקיות שעלולות לגרום לשגיאות בהמשך במערכת.
+
+📸 Screenshots: `Constraint3_Add_Success.jpeg`, `Constraint3_Trigger_Error.jpeg`, `Constraint3_Valid_Insert.jpeg`
+
+---
+
+### INDEXES
+
+#### ⚡ Index 1 – תאריך עסקה
+
+```sql
+CREATE INDEX idx_transactions_date ON transactions(transaction_date);
+```
+
+**מוטיבציה:** שאילתות רבות מסננות לפי transaction_date. האינדקס מאפשר Index Scan במקום Seq Scan.
+
+**תוצאות:** שיפור בזמן ריצה נצפה בתוצאות EXPLAIN ANALYZE לפני ואחרי יצירת האינדקס.
+
+📸 Screenshots: `Index1_Before_Execution.jpeg`, `Index1_After_Execution.jpeg`, `Index1_Create_Success.jpeg`
+
+---
+
+#### ⚡ Index 2 – מזהה מבקר בעסקאות
+
+```sql
+CREATE INDEX idx_transactions_visitor_id ON transactions(visitor_id);
+```
+
+**מוטיבציה:** שאילתות JOIN בין visitors לטבלת transactions מבוצעות לפי visitor_id. האינדקס מאיץ את החיבור בין הטבלאות.
+
+**תוצאות:** שיפור בזמן ריצה של שאילתות JOIN על מסדי נתונים גדולים.
+
+📸 Screenshots: `Index2_Before_Execution.jpeg`, `Index2_After_Execution.jpeg`, `Index2_Create_Success.jpeg`
+
+---
+
+#### ⚡ Index 3 – שם משפחה של מבקר
+
+```sql
+CREATE INDEX idx_visitors_last_name ON visitors(last_name);
+```
+
+**מוטיבציה:** חיפוש מבקרים לפי last_name (LIKE 'A%') הוא פעולה נפוצה בקופת הכרטיסים. האינדקס תומך בחיפושי קידומת ביעילות.
+
+**תוצאות:** שאילתות LIKE עם קידומת קבועה הפכו מהירות יותר לאחר יצירת האינדקס.
+
+📸 Screenshots: `Index3_Before_Execution.jpeg`, `Index3_After_Execution.jpeg`, `Index3_Create_Success.jpeg`, `Index3_Mass_Data_Insert.jpeg`
 
 ---
 
 ## Conclusion
 
-Stage 2 focused on transforming a structured relational schema into an optimized, production-ready system. By applying 3NF normalization, strategic indexing, and strict integrity constraints, we developed a system that is scalable, efficient, and resilient to data entry errors. Future extensions could include role-based access control, audit logging, and a live reporting dashboard.
+Stage 2 focused on transforming a structured relational schema into an optimized, production-ready system. By applying 3NF normalization, strategic indexing, and strict integrity constraints, we developed a system that is scalable, efficient, and resilient to data entry errors.
 
 ---
 
