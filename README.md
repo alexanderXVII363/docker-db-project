@@ -712,3 +712,207 @@ Stage 2 focused on transforming a structured relational schema into an optimized
 ## Stage 2 Tag
 
 `stage2`
+
+---
+
+# Stage 3 – Integration & Views
+
+## Overview
+
+In this stage we integrated our Ticket & Visitor Management System with another team's Zoo Admin Project Management System. The integration connects the two systems through the employee-manager relationship, creating a unified database that combines visitor ticketing data with project management data.
+
+---
+
+## The Other Team's System
+
+The Zoo Admin system manages the administrative side of the zoo with 6 tables:
+
+| Table | Description |
+|-------|-------------|
+| manager | Zoo managers with seniority levels |
+| project | Projects with budgets, dates and status |
+| task | Tasks linked to projects with priority levels |
+| report | Management reports per department |
+| kpi | KPI metrics measured per project |
+| audit | Audit findings per project and manager |
+
+---
+
+## Reverse Engineering Algorithm
+
+To reconstruct the ERD from the other team's schema, we followed these steps:
+
+1. **Identify entities** — each table becomes an entity in the ERD
+2. **Identify primary keys** — single PKs become simple identifiers; composite PKs indicate weak entities or relationship tables
+3. **Identify foreign keys** — each FK represents a relationship between two entities; the FK side is "many", the referenced side is "one"
+4. **Determine cardinality** — from FK constraints: `manager → project` is 1:N, `project → task` is 1:N, etc.
+5. **Identify weak entities** — tables that cannot exist without another table (e.g. task cannot exist without project)
+6. **Reconstruct the ERD** — draw entities, relationships, and cardinalities based on the above analysis
+
+---
+
+## Integration Design Decisions
+
+| Decision | Reasoning |
+|----------|-----------|
+| Link `employees` to `manager` via `manager_id` | Both systems have staff — our employees report to their managers |
+| Divide 500 employees across 3 managers | Even distribution: manager 1 → IDs 1-166, manager 2 → 167-333, manager 3 → 334-500 |
+| Keep all original tables unchanged | Instructions require ALTER TABLE, not recreating tables |
+| Use `IF NOT EXISTS` for new tables | Safe to run multiple times without errors |
+
+---
+
+## Integration SQL
+
+The integration was performed using `Integrate.sql` which:
+1. Creates the other team's 6 tables
+2. Inserts their data (managers, projects, tasks, reports, KPIs, audits)
+3. Adds `manager_id` column to our `employees` table
+4. Links employees to managers via foreign key
+5. Updates all 500 employees with their assigned manager
+
+---
+
+## Combined Row Counts After Integration
+
+| Table | Rows |
+|-------|------|
+| employees | 500 |
+| visitors | 500 |
+| ticket_types | 500 |
+| transactions | 20,000 |
+| transaction_items | 20,000 |
+| memberships | 500 |
+| manager | 3 |
+| project | 3 |
+| task | 3 |
+| report | 3 |
+| kpi | 3 |
+| audit | 3 |
+
+---
+
+## Views
+
+### 👁️ View 1: view_employee_manager
+**Our system's perspective** — joins our `employees` table with the other team's `manager` and `project` tables. Shows each employee alongside their manager's details and the project that manager is responsible for.
+
+```sql
+CREATE OR REPLACE VIEW view_employee_manager AS
+SELECT
+    e.employee_id,
+    e.first_name        AS employee_first_name,
+    e.last_name         AS employee_last_name,
+    e.hire_date,
+    m.manager_id,
+    m.first_name        AS manager_first_name,
+    m.last_name         AS manager_last_name,
+    m.seniority_level,
+    p.project_name,
+    p.status            AS project_status,
+    p.budget
+FROM employees e
+JOIN manager m ON e.manager_id = m.manager_id
+JOIN project p ON p.manager_id = m.manager_id;
+```
+
+#### Query 1.1 – Number of employees per manager
+Shows how many employees each manager supervises, along with their seniority level. Useful for understanding management load across the organization.
+
+```sql
+SELECT
+    manager_first_name || ' ' || manager_last_name AS manager_name,
+    seniority_level,
+    COUNT(DISTINCT employee_id) AS total_employees
+FROM view_employee_manager
+GROUP BY manager_name, seniority_level
+ORDER BY total_employees DESC;
+```
+
+📸 Screenshot: `view1_query1.png`
+
+#### Query 1.2 – Recently hired employees and their manager's project
+Returns all employees hired after January 2022, showing which manager they report to and which project that manager is running. Useful for onboarding reports and project staffing overview.
+
+```sql
+SELECT
+    employee_first_name || ' ' || employee_last_name AS employee_name,
+    hire_date,
+    manager_first_name || ' ' || manager_last_name AS manager_name,
+    project_name,
+    project_status
+FROM view_employee_manager
+WHERE hire_date >= '2022-01-01'
+ORDER BY hire_date DESC
+LIMIT 10;
+```
+
+📸 Screenshot: `view1_query2.png`
+
+---
+
+### 👁️ View 2: view_project_transactions
+**Other team's perspective** — connects the other team's project management system with our ticketing system. Shows how visitor transactions relate to active projects through the employee-manager link, giving a full picture of revenue generated under each project.
+
+```sql
+CREATE OR REPLACE VIEW view_project_transactions AS
+SELECT
+    p.project_id,
+    p.project_name,
+    p.status            AS project_status,
+    p.budget,
+    m.first_name || ' ' || m.last_name AS manager_name,
+    m.seniority_level,
+    e.employee_id,
+    e.first_name        AS employee_first_name,
+    e.last_name         AS employee_last_name,
+    t.transaction_id,
+    t.transaction_date,
+    t.total_amount,
+    t.payment_method,
+    v.first_name        AS visitor_first_name,
+    v.last_name         AS visitor_last_name
+FROM project p
+JOIN manager m      ON m.manager_id     = p.manager_id
+JOIN employees e    ON e.manager_id     = m.manager_id
+JOIN transactions t ON t.employee_id    = e.employee_id
+JOIN visitors v     ON v.visitor_id     = t.visitor_id;
+```
+
+#### Query 2.1 – Total revenue per project
+Calculates the total number of transactions and total revenue generated under each project, by tracing which employees handled the transactions and which project their manager is responsible for.
+
+```sql
+SELECT
+    project_name,
+    project_status,
+    COUNT(transaction_id)   AS total_transactions,
+    SUM(total_amount)       AS total_revenue
+FROM view_project_transactions
+GROUP BY project_name, project_status
+ORDER BY total_revenue DESC;
+```
+
+📸 Screenshot: `view2_query1.png`
+
+#### Query 2.2 – Average transaction amount per manager
+Shows the average transaction value handled by employees under each manager, grouped by manager name and seniority level. Useful for evaluating manager performance and identifying which teams process higher-value transactions.
+
+```sql
+SELECT
+    manager_name,
+    seniority_level,
+    COUNT(transaction_id)       AS total_transactions,
+    ROUND(AVG(total_amount), 2) AS avg_transaction_amount
+FROM view_project_transactions
+GROUP BY manager_name, seniority_level
+ORDER BY avg_transaction_amount DESC;
+```
+
+📸 Screenshot: `view2_query2.png`
+
+---
+
+## Stage 3 Tag
+
+`stage3`
