@@ -916,3 +916,349 @@ ORDER BY avg_transaction_amount DESC;
 ## Stage 3 Tag
 
 `stage3`
+
+---
+
+# Stage 4 – PL/pgSQL Programming
+
+## Overview
+
+In this stage we implemented PL/pgSQL programs including functions, procedures, triggers, and main programs. All programs operate on the integrated database created in Stage 3.
+
+---
+
+## Database Changes (AlterTable.sql)
+
+The following columns and tables were added to support the programs:
+
+```sql
+ALTER TABLE visitors ADD COLUMN IF NOT EXISTS loyalty_points INT DEFAULT 0;
+ALTER TABLE visitors ADD COLUMN IF NOT EXISTS last_activity_date DATE;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS bonus_amount NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+CREATE TABLE IF NOT EXISTS ticket_price_log (
+    log_id      SERIAL PRIMARY KEY,
+    ticket_id   INT NOT NULL,
+    old_price   NUMERIC(10,2),
+    new_price   NUMERIC(10,2),
+    changed_at  TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+## FUNCTION 1: get_visitor_summary
+
+**Description:**
+This function receives a visitor_id and returns a summary of that visitor including their full name, total number of transactions, total amount spent, loyalty points, and membership status. It uses an explicit cursor to loop through transactions, updates the visitor's loyalty points in the database, and handles exceptions gracefully.
+
+**Elements used:** Explicit cursor, record, DML (UPDATE), branches (IF/ELSIF/ELSE), loop, exception handling.
+
+```sql
+CREATE OR REPLACE FUNCTION get_visitor_summary(p_visitor_id INT)
+RETURNS TABLE (
+    visitor_name        TEXT,
+    total_transactions  BIGINT,
+    total_spent         NUMERIC,
+    loyalty_points      INT,
+    membership_status   TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_record        visitors%ROWTYPE;
+    v_trans_count   BIGINT := 0;
+    v_total_spent   NUMERIC := 0;
+    v_loyalty       INT := 0;
+    v_membership    TEXT := 'No Membership';
+    cur_transactions CURSOR FOR
+        SELECT total_amount FROM transactions WHERE visitor_id = p_visitor_id;
+    v_trans_row RECORD;
+BEGIN
+    BEGIN
+        SELECT * INTO STRICT v_record FROM visitors WHERE visitor_id = p_visitor_id;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE EXCEPTION 'Visitor with ID % not found', p_visitor_id;
+    END;
+    OPEN cur_transactions;
+    LOOP
+        FETCH cur_transactions INTO v_trans_row;
+        EXIT WHEN NOT FOUND;
+        v_trans_count := v_trans_count + 1;
+        v_total_spent := v_total_spent + v_trans_row.total_amount;
+    END LOOP;
+    CLOSE cur_transactions;
+    v_loyalty := v_trans_count * 10;
+    UPDATE visitors SET loyalty_points = v_loyalty, last_activity_date = CURRENT_DATE
+    WHERE visitor_id = p_visitor_id;
+    IF EXISTS (SELECT 1 FROM memberships WHERE visitor_id = p_visitor_id AND is_active = TRUE AND expiry_date >= CURRENT_DATE) THEN
+        v_membership := 'Active Member';
+    ELSIF EXISTS (SELECT 1 FROM memberships WHERE visitor_id = p_visitor_id) THEN
+        v_membership := 'Expired Member';
+    ELSE
+        v_membership := 'No Membership';
+    END IF;
+    RETURN QUERY SELECT v_record.first_name || ' ' || v_record.last_name, v_trans_count, v_total_spent, v_loyalty, v_membership;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error in get_visitor_summary: %', SQLERRM;
+END;
+$$;
+```
+
+📸 Screenshot: `func1_created.png`
+
+---
+
+## FUNCTION 2: get_employee_report
+
+**Description:**
+This function returns a REF CURSOR containing a full performance report for all employees. It loops through every employee using an explicit cursor, counts their transactions, calculates total revenue handled, classifies their performance level (Excellent/Good/Average/Low), and stores results in a temp table. The ref cursor is opened on that temp table and returned.
+
+**Elements used:** Explicit cursor, ref cursor (returned), record, DML (INSERT), branches, loop, exception handling.
+
+```sql
+CREATE OR REPLACE FUNCTION get_employee_report()
+RETURNS REFCURSOR
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    ref_cur         REFCURSOR := 'employee_report_cursor';
+    v_emp_record    RECORD;
+    v_trans_count   INT;
+    v_total_revenue NUMERIC;
+    v_performance   TEXT;
+    cur_employees CURSOR FOR
+        SELECT e.employee_id, e.first_name, e.last_name, e.hire_date, e.bonus_amount,
+               COALESCE(m.first_name || ' ' || m.last_name, 'No Manager') AS manager_name
+        FROM employees e
+        LEFT JOIN manager m ON e.manager_id = m.manager_id
+        ORDER BY e.employee_id;
+BEGIN
+    DROP TABLE IF EXISTS temp_employee_report;
+    CREATE TEMP TABLE temp_employee_report (
+        employee_id INT, employee_name TEXT, hire_date DATE,
+        manager_name TEXT, total_transactions INT,
+        total_revenue NUMERIC, bonus_amount NUMERIC, performance TEXT
+    );
+    OPEN cur_employees;
+    LOOP
+        FETCH cur_employees INTO v_emp_record;
+        EXIT WHEN NOT FOUND;
+        SELECT COUNT(*), COALESCE(SUM(total_amount), 0)
+        INTO v_trans_count, v_total_revenue
+        FROM transactions WHERE employee_id = v_emp_record.employee_id;
+        IF v_trans_count >= 100 THEN v_performance := 'Excellent';
+        ELSIF v_trans_count >= 50 THEN v_performance := 'Good';
+        ELSIF v_trans_count >= 10 THEN v_performance := 'Average';
+        ELSE v_performance := 'Low';
+        END IF;
+        INSERT INTO temp_employee_report VALUES (
+            v_emp_record.employee_id, v_emp_record.first_name || ' ' || v_emp_record.last_name,
+            v_emp_record.hire_date, v_emp_record.manager_name,
+            v_trans_count, v_total_revenue, v_emp_record.bonus_amount, v_performance
+        );
+    END LOOP;
+    CLOSE cur_employees;
+    OPEN ref_cur FOR SELECT * FROM temp_employee_report ORDER BY total_revenue DESC;
+    RETURN ref_cur;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error in get_employee_report: %', SQLERRM;
+END;
+$$;
+```
+
+📸 Screenshot: `func2_created.png`
+
+---
+
+## PROCEDURE 1: update_employee_bonuses
+
+**Description:**
+This procedure loops through all employees and calculates a bonus based on the total revenue they handled in transactions. Employees with revenue above 100,000 get 5%, above 50,000 get 3%, above 10,000 get 1%, and others get no bonus. It updates the bonus_amount column for each employee and prints a summary using RAISE NOTICE.
+
+**Elements used:** Explicit cursor, record, DML (UPDATE), branches (bonus tiers), loop, exception handling.
+
+```sql
+CREATE OR REPLACE PROCEDURE update_employee_bonuses()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_emp_record    RECORD;
+    v_revenue       NUMERIC;
+    v_bonus         NUMERIC;
+    v_updated_count INT := 0;
+    cur_emp CURSOR FOR
+        SELECT employee_id, first_name, last_name FROM employees ORDER BY employee_id;
+BEGIN
+    OPEN cur_emp;
+    LOOP
+        FETCH cur_emp INTO v_emp_record;
+        EXIT WHEN NOT FOUND;
+        SELECT COALESCE(SUM(total_amount), 0) INTO v_revenue
+        FROM transactions WHERE employee_id = v_emp_record.employee_id;
+        IF v_revenue >= 100000 THEN v_bonus := v_revenue * 0.05;
+        ELSIF v_revenue >= 50000 THEN v_bonus := v_revenue * 0.03;
+        ELSIF v_revenue >= 10000 THEN v_bonus := v_revenue * 0.01;
+        ELSE v_bonus := 0;
+        END IF;
+        UPDATE employees SET bonus_amount = v_bonus WHERE employee_id = v_emp_record.employee_id;
+        v_updated_count := v_updated_count + 1;
+        IF v_bonus > 0 THEN
+            RAISE NOTICE 'Employee % % received bonus: %', v_emp_record.first_name, v_emp_record.last_name, v_bonus;
+        END IF;
+    END LOOP;
+    CLOSE cur_emp;
+    RAISE NOTICE 'Bonus update complete. % employees processed.', v_updated_count;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error in update_employee_bonuses: %', SQLERRM;
+END;
+$$;
+```
+
+📸 Screenshot: `proc1_created.png`
+
+---
+
+## PROCEDURE 2: expire_old_memberships
+
+**Description:**
+This procedure loops through all memberships and checks if each one has passed its expiry date. If expired and still marked active, it sets is_active to FALSE and deducts 50 loyalty points from the visitor as a penalty. It prints a summary of how many memberships were expired during the run.
+
+**Elements used:** Explicit cursor, record, DML (UPDATE x2), branches, loop, exception handling.
+
+```sql
+CREATE OR REPLACE PROCEDURE expire_old_memberships()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_mem_record    RECORD;
+    v_expired_count INT := 0;
+    v_already_count INT := 0;
+    cur_memberships CURSOR FOR
+        SELECT m.membership_id, m.visitor_id, m.expiry_date, m.is_active,
+               v.first_name || ' ' || v.last_name AS visitor_name
+        FROM memberships m JOIN visitors v ON m.visitor_id = v.visitor_id
+        ORDER BY m.membership_id;
+BEGIN
+    OPEN cur_memberships;
+    LOOP
+        FETCH cur_memberships INTO v_mem_record;
+        EXIT WHEN NOT FOUND;
+        IF v_mem_record.expiry_date < CURRENT_DATE AND v_mem_record.is_active = TRUE THEN
+            UPDATE memberships SET is_active = FALSE WHERE membership_id = v_mem_record.membership_id;
+            UPDATE visitors SET loyalty_points = GREATEST(0, loyalty_points - 50) WHERE visitor_id = v_mem_record.visitor_id;
+            v_expired_count := v_expired_count + 1;
+            RAISE NOTICE 'Membership % for visitor % has been expired.', v_mem_record.membership_id, v_mem_record.visitor_name;
+        ELSIF v_mem_record.is_active = FALSE THEN
+            v_already_count := v_already_count + 1;
+        END IF;
+    END LOOP;
+    CLOSE cur_memberships;
+    RAISE NOTICE 'Expiry process complete. Newly expired: %, Already inactive: %.', v_expired_count, v_already_count;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error in expire_old_memberships: %', SQLERRM;
+END;
+$$;
+```
+
+📸 Screenshot: `proc2_created.png`
+
+---
+
+## TRIGGER 1: trg_update_loyalty_points
+
+**Description:**
+This trigger fires AFTER INSERT on the transactions table. When a new transaction is added, it automatically adds 10 loyalty points to the visitor who made the transaction and updates their last_activity_date to today. This ensures loyalty points are always up to date without needing to call a function manually.
+
+**Trigger type:** AFTER INSERT on transactions
+
+```sql
+CREATE OR REPLACE FUNCTION trg_fn_update_loyalty_points()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+    v_current_points INT;
+BEGIN
+    SELECT loyalty_points INTO v_current_points FROM visitors WHERE visitor_id = NEW.visitor_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Visitor % not found when updating loyalty points', NEW.visitor_id;
+    END IF;
+    UPDATE visitors
+    SET loyalty_points = COALESCE(v_current_points, 0) + 10, last_activity_date = CURRENT_DATE
+    WHERE visitor_id = NEW.visitor_id;
+    RAISE NOTICE 'Loyalty points updated for visitor %. New total: %', NEW.visitor_id, COALESCE(v_current_points, 0) + 10;
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN RAISE EXCEPTION 'Error in trg_update_loyalty_points: %', SQLERRM;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_update_loyalty_points ON transactions;
+CREATE TRIGGER trg_update_loyalty_points
+AFTER INSERT ON transactions FOR EACH ROW
+EXECUTE FUNCTION trg_fn_update_loyalty_points();
+```
+
+📸 Screenshot: `trg1_created.png`
+
+---
+
+## TRIGGER 2: trg_log_price_change
+
+**Description:**
+This trigger fires AFTER UPDATE on the ticket_types table. When a ticket's base_price is changed, the trigger logs the old and new price into the ticket_price_log table, providing a full audit trail of all price changes. If the price did not actually change, the trigger skips the log entry.
+
+**Trigger type:** AFTER UPDATE on ticket_types
+
+```sql
+CREATE OR REPLACE FUNCTION trg_fn_log_price_change()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    IF OLD.base_price <> NEW.base_price THEN
+        INSERT INTO ticket_price_log (ticket_id, old_price, new_price, changed_at)
+        VALUES (NEW.ticket_id, OLD.base_price, NEW.base_price, NOW());
+        RAISE NOTICE 'Price change logged for ticket %. Old: %, New: %', NEW.ticket_id, OLD.base_price, NEW.base_price;
+    ELSE
+        RAISE NOTICE 'No price change detected for ticket %. Skipping log.', NEW.ticket_id;
+    END IF;
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN RAISE EXCEPTION 'Error in trg_log_price_change: %', SQLERRM;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_log_price_change ON ticket_types;
+CREATE TRIGGER trg_log_price_change
+AFTER UPDATE ON ticket_types FOR EACH ROW
+EXECUTE FUNCTION trg_fn_log_price_change();
+```
+
+📸 Screenshot: `trg2_created.png`
+
+---
+
+## MAIN PROGRAM 1
+
+**Description:**
+This main program demonstrates Function 1 (get_visitor_summary) and Procedure 1 (update_employee_bonuses). It calls the function to get a summary for visitor 1, prints the result using RAISE NOTICE, then calls the procedure to update all employee bonuses and shows the top 5 earners.
+
+📸 Screenshot: `main1_output.png`
+
+---
+
+## MAIN PROGRAM 2
+
+**Description:**
+This main program demonstrates Procedure 2 (expire_old_memberships) and Function 2 (get_employee_report). It first calls the procedure to expire old memberships, then calls the function which returns a ref cursor, fetches the results row by row, and prints the top 10 employees by revenue.
+
+📸 Screenshot: `main2_output.png`
+
+---
+
+## Stage 4 Tag
+
+`stage4`
