@@ -1262,3 +1262,106 @@ This main program demonstrates Procedure 2 (expire_old_memberships) and Function
 ## Stage 4 Tag
 
 `stage4`
+
+---
+
+# Stage 5 – Graphical User Interface
+
+## Overview
+
+In this stage we built a full graphical user interface (GUI) for the Zoo Ticket & Visitor Management System using **Python** and **Tkinter**. The application connects directly to the PostgreSQL database running in Docker and supports all CRUD operations, query execution, and function/procedure invocation.
+
+---
+
+## Technologies Used
+
+- **Python 3.12** — application language
+- **Tkinter** — GUI framework (built into Python)
+- **psycopg2** — PostgreSQL database connector
+- **Docker** — database runs in container as before
+
+---
+
+## How to Run
+
+### Step 1 – Install dependency
+```bash
+pip3 install psycopg2-binary --break-system-packages
+```
+
+### Step 2 – Start Docker
+```bash
+docker-compose up -d
+```
+
+### Step 3 – Run the application
+```bash
+cd Stage5
+python3 app.py
+```
+
+### Step 4 – Login
+- Username: `admin`
+- Password: `admin`
+
+---
+
+## Application Screens
+
+### 🔐 Login Screen
+Clean login screen with username and password fields. Verifies database connectivity on login.
+
+📸 Screenshot: `screen_login.png`
+
+---
+
+### 🏠 Dashboard
+Overview of the entire system showing live row counts for all 6 main tables: Visitors, Employees, Transactions, Ticket Types, Memberships, and Managers.
+
+📸 Screenshot: `screen_dashboard.png`
+
+---
+
+### 📋 Table Screens (CRUD)
+Every table in the database is accessible from the sidebar. Each table screen supports:
+
+- **View** — displays all records in a clean table with real names instead of IDs (foreign keys are joined and displayed as names)
+- **Insert** — form to add a new record
+- **Update** — enter the record ID, click Load Record to populate fields, edit and save
+- **Delete** — enter the record ID to delete with confirmation dialog
+- **Refresh** — reload data from database
+
+Tables available: Visitors, Employees, Ticket Types, Transactions, Transaction Items, Memberships, Managers, Projects, Tasks, Reports, KPIs, Audit
+
+📸 Screenshots: `screen_visitors.png`, `screen_insert.png`, `screen_update.png`, `screen_delete.png`
+
+---
+
+### ⚡ Queries Screen
+Run Stage 2 SELECT queries directly from the interface. Select a query from the dropdown and click Run Query to see results in a live table.
+
+Queries available:
+- Q1 – Visitors & Transaction Count (JOIN)
+- Q3 – Transactions in Last 30 Days
+- Q7 – Average Transactions Per Visitor
+- Q8 – Visitors With More Than 5 Transactions (HAVING)
+
+📸 Screenshot: `screen_queries.png`
+
+---
+
+### ⚙️ Functions & Procedures Screen
+Run Stage 4 PL/pgSQL programs directly from the interface. Four cards are shown:
+
+- **get_visitor_summary** — enter a visitor ID and get their full summary (name, transactions, spent, loyalty points, membership status)
+- **update_employee_bonuses** — run the procedure to update all employee bonuses based on revenue
+- **expire_old_memberships** — run the procedure to expire outdated memberships
+- **get_employee_report** — run the function to get the full employee performance report
+
+📸 Screenshot: `screen_functions.png`
+
+---
+
+## Stage 5 Tag
+
+`stage5`
