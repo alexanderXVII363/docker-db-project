@@ -216,9 +216,9 @@ docker-db-project
 │   ├── dropTables.sql
 │   ├── insertTables.sql
 │   ├── selectAll.sql
+│   ├── stage1-ui.html          # UI Prototype
 │   ├── ERD/                    # Entity Relationship Diagrams
 │   ├── Screenshots1/           # Execution evidence for Stage 1
-│   ├── stage1-ui.html          # UI Prototype
 │   └── MockarooFiles/          # Generated SQL datasets
 │       ├── employees.sql
 │       ├── visitors.sql
@@ -227,22 +227,53 @@ docker-db-project
 │       ├── transaction_items.sql
 │       └── memberships.sql
 │
-├── init-db/                    # Auto-executed on container start
-│   ├── 01-create-tables.sql
-│   ├── 02-employees.sql
-│   ├── 03-visitors.sql
-│   ├── 04-ticket_types.sql
-│   ├── 05-transactions.sql
-│   ├── 06-transaction_items.sql
-│   └── 07-seed-data.sql
+├── Stage2
+│   ├── Queries.sql
+│   ├── Constraints.sql
+│   ├── Index.sql
+│   ├── RollbackCommit.sql
+│   ├── backup.sql
+│   ├── backup2.sql
+│   └── screenshots/
 │
-└── Stage2
-    ├── Queries.sql
-    ├── Constraints.sql
-    ├── Index.sql
-    ├── RollbackCommit.sql
-    ├── backup.sql
-    └── screenshots/
+├── Stage3
+│   ├── Integrate.sql
+│   ├── Views.sql
+│   ├── backup3.sql
+│   ├── received_system_DSD.png
+│   ├── received_system_ERD.png
+│   ├── other_team_ERD.png
+│   ├── combined_ERD.png
+│   ├── combined_DSD.png
+│   └── Screenshots/
+│
+├── Stage4
+│   ├── AlterTable.sql
+│   ├── func_get_visitor_summary.sql
+│   ├── func_get_employee_report.sql
+│   ├── proc_update_bonuses.sql
+│   ├── proc_expire_memberships.sql
+│   ├── trg_update_loyalty_points.sql
+│   ├── trg_log_price_change.sql
+│   ├── main_program_1.sql
+│   ├── main_program_2.sql
+│   ├── backup4.sql
+│   └── Screenshots/
+│
+├── Stage5
+│   ├── app.py
+│   ├── INSTRUCTIONS.md
+│   └── Screenshots/
+│
+└── init-db/                    # Auto-executed on container start
+    ├── 01-create-tables.sql
+    ├── 02-employees.sql
+    ├── 03-visitors.sql
+    ├── 04-ticket_types.sql
+    ├── 05-transactions.sql
+    ├── 06-transaction_items.sql
+    ├── 07-seed-data.sql
+    └── 08-memberships.sql
 ```
 
 ---
